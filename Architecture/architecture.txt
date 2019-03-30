@@ -6,7 +6,7 @@ Architecture:
 	- Représentation d'un mot de passe: On n'utilise pas de structure pour représenter le mot de passe, car on n'a jamais besoin d'accéder à plusieurs "attributs" du mot de passe en même temps. Avant le reversehash, on aura uniquement besoin des hashes et après reversehash on aura uniquement besoin des versions "en clair".
 	Ainsi, les mots de passe seront tantôt représentés par un "char *" de taille inconnue au préalable (version en clair), et tantôt ils seront représentés par un "uint8_t password[32]" (version hashée).
 	
-	- Ensemble des mots de passe pas encore traités (= des hashes): une liste chainée de hashes. Techniquement, si on traite le fichier par "blocs" (cf. réponse à notre question Moodle), alors une partie des mots de passe pas encore traités sera encore dans le fichier et l'autre sera dans une telle liste chainée, mais c'est un détail.
+	- Ensemble des mots de passe pas encore traités (= des hashes): un buffer (tableau uint8_t *) de taille prédéfinie est rempli de hashes non-traités et la partie des hashes non-traités qui n'a pas pu être insérée dans le buffer est conservée dans le fichier en attendant d'être lue par un thread producteur pour être ajoutée au buffer.
 	
 	- Ensemble des mots de passe constituant les "meilleurs candidats" à un instant donné: une liste chainée de "char *" représentant les versions "en clair" des mots de passe qui ont été retenus comme "meilleurs candidats".
 	
@@ -15,19 +15,22 @@ Architecture:
 
 2) Types de threads et tâches réalisées:
 	- Le thread principal: il fait tourner la 'main' et est le parent de tous les threads de calcul mentionnés ci-dessous. Il récupère les arguments de la ligne de commande, démarre les threads de calcul en respectant les contraintes imposées par les arguments passés par l'utilisateur, attend que ces threads de calcul aient terminé leur tâche et gère le "retour vers l'utilisateur" (il s'occuppe d'afficher les résultats).
-	Si notre petite requête sur Moodle est acceptée, le workflow du thread principal (et donc de la main) est le suivant:
-		- Récupérer les arguments de la ligne de commande
-		- Tant que le fichier n'a pas été lu entièrement:
-			- Lire un bloc du fichier (de taille prédéfinie)
-			- Créer la linked list de hashes correspondant à ce bloc
-			- Lancer les N threads de calcul qui vont mettre à jour la liste des versions "en clair" des meilleurs candidats de ce bloc, ainsi que la valeur "best_score", égale au score desdits meilleurs candidats.
-			- Finaliser les N threads
-		- Quand on a vidé le fichier (bloc par bloc), informer l'utilisateur du résultat du calcul
+	Si notre petite requête sur Moodle est acceptée, le workflow du thread principal est le suivant:
+		- Récupérer les arguments de la ligne de commande et effectuer la suite des opérations en se basant sur ceux-ci;
+		- Lancer les threads producteurs (nombre prédéfini, non-contraint par l'énoncé du devoir!)
+		- Lancer les threads consommateurs (= threads "de calcul" -> ceux qui effectuent l'inversion de hash. Le nombre de ceux-ci dépend des arguments dans argv);
+		- Finaliser les threads producteurs et consommateurs quand ils ont terminé leur tâche;
+		- Informer l'utilisateur du résultat du calcul.
 		NOTE: Ne pas oublier de gérer les erreurs avec un système de codes d'erreur.
+	
+	- Les threads producteurs: il en existe un nombre prédéfini (valeur à déterminer sur base de tests). Ils servent à lire le fichier pour remplir le buffer avec des hashes non-traités. Leur workflow est le suivant:
+		- Si le le fichier est vide: mettre la valeur du flag global "file_empty" à true et terminer le thread (return)
+		- Sinon, si le buffer n'est pas rempli: lire un hash et l'ajouter au buffer. Incrémenter l'indice faisant référence au dernier indice occupé du buffer.
+		- Si le buffer est rempli: bloquer le thread jusqu'à ce qu'une place du buffer soit libérée.
 
 	- Les threads de calcul: ils sont au nombre de N (N est spécifié par l'utilisateur et vaut 1 par défaut). Ils ont le workflow suivant:
-		- Tant que la liste chainée (partagée entre les threads) n'est pas vide:
-			- Prendre le hash au sommet de cette liste (en le retirant de celle-ci, c'est une sorte de "pop") (en s'appropriant cette ressource!)
+		- Tant que 'file_empy' est false et que le buffer n'est pas vide:
+			- Prendre le dernier hash du buffer en se basant sur l'indice global désignant le dernier hash non-traité du buffer. Décrémenter det indice global.
 			- reversehash ce hash. Si le score du mot de passe obtenu est égal au "best_score" (variable partagée entre les threads), ajouter le mot de passe "en clair" à la "liste des meilleurs candidats". Si le score du mot de passe obtenu est > à best_score, supprimer tous les éléments dans la "liste des meilleurs candidats" et y ajouter le mot de passe "en clair", puis mettre à jour le "best_score" avec le score de ce mot de passe. Sinon, ne rien faire de particulier.
 			NOTE: toute interaction avec une ressource partagée doit se faire correctement (coordination des accès aux ressources partagées)
 			(Si une erreur survient, retourner un code d'erreur approprié)
@@ -35,13 +38,15 @@ Architecture:
 
 
 3) Méthodes de communication entre les threads:
-	- Les threads de calcul "communiquent" entre eux au travers des trois ressources partagées citées au point suivant. Ces interactions se font de manière sécurisée en utilisant les bon protocoles d'interaction (voir point suivant).
+	- Les threads de calcul "communiquent" entre eux au travers des ressources partagées citées au point suivant. Ces interactions se font de manière sécurisée en utilisant les bon protocoles d'interaction (voir point suivant).
 	
-	- Type de mutex/sémaphore/etc utilisé? Pourquoi?
+	- Comme nous nous trouvons dans une configuration de type "producteur-consommateur", il est adapté d'utiliser deux sémaphores: l'un que l'on baptise 'empty', dont la valeur est initialisée à M (avec M = taille du buffer) et qui représente le nombre de places libres dans le buffer et l'autre que l'on baptise 'full' dont la valeur est initialisée à 0 et qui représente le nombre de places occupées dans le buffer. Le buffer devra quant à lui être protégé par un mutex.
 	
 
 4) Informations communiquées entre les threads:
 	- Les ressources partagées sont  "liste des meilleurs candidats", "liste des hash pas encore traités" et "best_score". Ainsi, les informations communiquées entre les threads sont celles qui sont contenues dans ces variables, à savoir: les hashes pas encore traités, le meilleur score à un instant donné et la liste des candidats les plus prometteurs à cet instant.
+	
+	- Des variables partagées permettent au threads de communiquer pour évaluer l'état d'avancement du programme. Ces variables sont: 'last_hash_index': l'indice du dernier hash non-traité présent dans le buffer, 'is_file_empty': une valeur booléenne permettant de savoir si le fichier a été lu entièrement ou non.
 	
 	- Ces ressources partagées se trouvent dans le heap, car cette zone mémoire est partagée entre les threads.
 	
