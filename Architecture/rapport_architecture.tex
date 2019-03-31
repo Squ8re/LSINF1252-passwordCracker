@@ -30,6 +30,17 @@
 \usepackage{hyperref}%permet de cliquer sur les urls et les sections dans les pdfs
 \usepackage{titling}
 \usepackage{wrapfig}
+\usepackage{listingsutf8}  % Insertion de code
+\lstset{
+	inputencoding=utf8/latin1,
+	showstringspaces=false,
+	basicstyle=\ttfamily,
+	keywordstyle=\color{blue},
+	commentstyle=\color[grey]{0.6},
+	stringstyle=\color[RGB]{255,150,75}
+} % Setup de l'encodage des fragments de code
+\usepackage{nameref}
+
 \setlength{\headheight}{12.2pt}
 \setlength{\droptitle}{-1.5cm}
 \geometry{margin=2cm}
@@ -105,12 +116,63 @@
 
 
 \section{Structures de données}
+\label{sec:data_structures}
+% Ajouter: le buffer est une structure de données de type Last In First Out
 
 \section{Types de threads entrant en jeu}
+	
+	\noindent
+	Notre programme comportera plusieurs types de threads, à savoir:
+	
+	\begin{enumerate}
+		\item
+		Le \textbf{thread principal}.
+		Il s'agit du thread dans lequel s'exécute la fonction \lstinline{main} et qui permet de gérer tous les autres threads du programme.
+		Il est donc le parent des threads décrits ci-dessous.
+		Son rôle est de récupérer les arguments dans \lstinline{argv} afin d'y réagir de manière appropriée, de créer les diverses ressources partagées ainsi que les mécanismes de protection de celles-ci (mutex, sémaphores, etc), de lancer et de terminer les threads de lecture et de calcul décrits plus bas.
+		Avant que le programme ne termine son exécution, ce thread permet aussi de gérer le "retour vers l'utilisateur", c'est-à-dire qu'il se charge d'informer l'utilisateur du résultat des calculs;
+		
+		\item
+		Les \textbf{threads de lecture}.
+		Il s'agit de threads \textbf{producteurs} qui se chargent de lire le fichier de hashes dans un buffer de taille fixe à déterminer.
+		Il en existe un nombre prédéfini que nous devrons également déterminer à l'aide d'une analyse du remplissage du buffer lors de l'exécution.
+		Ces threads devront être bloqués quand le buffer est rempli et ils se termineront quand le fichier aura été lu dans son entièreté;
+		
+		\item
+		Les \textbf{threads de calcul}.
+		Il s'agit de threads \textbf{consommateurs} dont il existe $N$ instances, avec $N$ une valeur précisée en argument par l'utilisateur et dont la valeur par défaut est $1$.
+		Ces threads ont pour rôle d'inverser les hashes présents dans le buffer mentionné ci-dessus, puis de déterminer le "score" du mot de passe obtenu afin de pouvoir mettre à jour la liste des candidats en conséquence.
+		Quand le buffer est vide, ces threads sont bloqués mais ils ne se terminent pas tant que le fichier n'a pas été lu dans son entièreté.
+	\end{enumerate}
+	
+	\noindent
+	Les fonctions exécutées par nos threads auront un retour de type \lstinline{int} afin de pouvoir retourner des codes d'erreur en cas de besoin.
 
 \section{Méthodes de communication entre les threads}
 
 \section{Informations communiquées entre les threads}
+	Au travers de variables partagées situées dans le heap, les threads se communiqueront les informations suivantes:
+	
+	\begin{enumerate}
+		\item
+		L'\textbf{état de lecture du fichier}.
+		Cette information sera communiquée entre les threads de lecture et de calcul.
+		Elle sera décrite par une variable de type \lstinline{int} dont le nom sera "\lstinline{file_read}" et dont la valeur sera initialisée à \lstinline{0} puis mise à \lstinline{1} dès que le fichier aura été lu en entier.
+		Cette modification de valeur se fera par le thread de lecture ayant détecté la fin du fichier;
+		
+		\item
+		L'\textbf{indice du dernier hash} inséré dans le buffer.
+		Cette information sera communiquée entre les threads de lecture et de calcul.
+		Elle sera décrite par une variable de type \lstinline{int} et nommée "\lstinline{last_hash_index}" qui sera initialisée à la valeur \lstinline{-1} pour indiquer qu'aucun hash n'a encore été ajouté au buffer.
+		Chaque ajout d'un hash au buffer se fera à la position \lstinline{last_hash_index + 1} (si celle-ci ne sort pas du buffer) et s'accompagnera de l'incrémentation de \lstinline{last_hash_index}, tandis que chaque inversion de hash se fera sur celui situé à la position \lstinline{last_hash_index} (si cette position est positive) et s'accompagnera d'une décrémentation de \lstinline{last_hash_index};
+		
+		\item 
+		Les \textbf{hashes du buffer} constituent également des informations que se transmettront entre eux les threads de lecture et de calcul. Nous vous invitons à lire la section \textit{\nameref{sec:data_structures}} dans laquelle nous décrivons la structure du buffer;
+		
+		\item
+		Les \textbf{meilleurs candidats} à un instant donné, contenus dans la liste chaînée décrite dans la section \textit{\nameref{sec:data_structures}}, ainsi que le \textbf{meilleur "score"} en ce même instant donné, représenté par une variable "\lstinline{best_score}" de type \lstinline{int}, constituent une information échangée par les threads de calcul entre eux, ainsi qu'avec le thread principal.
+		
+	\end{enumerate}
 
 
 \end{document}
