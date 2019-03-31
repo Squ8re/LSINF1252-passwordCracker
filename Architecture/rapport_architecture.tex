@@ -99,7 +99,7 @@
 	Groupe n\degree$105$\\[0.2cm]
 	Amadéo \textsc{David}  - $44761700$% Your name
 	
-	Eduardo \textsc{Vannini} - $103017165$% Your name
+	Eduardo \textsc{Vannini} - $10301700$% Your name
 	
 	%------------------------------------------------
 	%	Date
@@ -118,12 +118,31 @@
 
 \section{Structures de données}
 \label{sec:data_structures}
-% Ajouter: le buffer est une structure de données de type Last In First Out
 
+	\noindent
+	Notre rapport comportera différentes structures de données, à savoir :
+	
+	\begin{itemize}
+		\item 
+		Les \textbf{mots de passe non-traités}.
+		Ceux-ci sont représentés par un tableau de trente-deux entiers sous la forme \textit{uint8\_t} car un hash est encodé sur trente-deux bytes.
+		Plus simplement, l'énoncé indique aussi que l'argument demandé par la fonction \textit{reversehash} doit être de la forme citée précédemment.
+		
+		\item 
+		L'\textbf{ensemble des mots de passe non-traités}. Ceux-ci seront stockés dans un buffer (un tableau de pointeur vers des \textit{uint8\_t}) de taille prédéfinie et rempli de hashes non-traités. Il est à noter que si la taille du fichier à lire excède la capacité du buffer, la partie qui n'a pas pû être insérée sera ajoutée au buffer par la suite. Notons aussi que le buffer est une structure de type \textit{Last In First Out}.
+		
+		\item % Dans le .txt : liste chainée de "char*" - en réalité, plutôt des pointeurs vers des tableaux me semble-t-il?
+		L'\textbf{ensemble des mots de passe constituants les \textit{meilleurs candidats} à un moment donné}. Ceux-ci sont stockés dans une liste chainée dont les données sont des pointeurs vers des tableau de caractères (autrement dit des pointeurs de pointeurs de caractères) qui représentent les versions déchiffrées des mots de passe retenus comme \textit{meilleurs candidats}.
+		
+		\item %,note supplémentaire, peut-être pas utile?
+		\textbf{Note} : il est intéressant de remarquer qu'aucune structure n'est utilisée pour représenter un mot de passe car il n'est jamais utile d'accéder en même temps à la version codée et décodée d'un mot de passe en même temps. Dès que celui-ci a été traité, sa version codée peut être oubliée. Les mots de passe seront donc soit représentés par des \textit{int8\_t password[32]} comme cité précédemment, soit par des \textit{char*} de taille inconnue avant exécution du programme (les versions en clair).
+		
+	\end{itemize}
+	
 \section{Types de threads entrant en jeu}
 	
 	\noindent
-	Notre programme comportera plusieurs types de threads, à savoir:
+	Notre programme comportera plusieurs types de threads, à savoir :
 	
 	\begin{enumerate}
 		\item
@@ -150,8 +169,12 @@
 	Les fonctions exécutées par nos threads auront un retour de type \lstinline{int} afin de pouvoir retourner des codes d'erreur en cas de besoin.
 
 \section{Méthodes de communication entre les threads}
+\noindent
+	Le programme utilisant le modèle du \textit{producteur-consommateur}, il faudra utiliser deux sémaphores. Le premier, appelé \textit{empty}, représentera le nombre de places libres dans le buffer et sera initialisé à une valeur \textit{M}, avec \textit{M} la taille du buffer. Le second sémaphore sera appelé \textit{full}, représentera le nombre de places occupées dans le buffer et sera initialisé à zéro.
+	Enfin, le buffer sera protégé par un mutex.
 
 \section{Informations communiquées entre les threads}
+\noindent
 	Au travers de variables partagées situées dans le heap, les threads se communiqueront les informations suivantes:
 	
 	\begin{enumerate}
