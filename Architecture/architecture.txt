@@ -24,7 +24,7 @@ Architecture:
 		NOTE: Ne pas oublier de gérer les erreurs avec un système de codes d'erreur.
 	
 	- Les threads producteurs: il en existe un nombre prédéfini (valeur à déterminer sur base de tests). Ils servent à lire le fichier pour remplir le buffer avec des hashes non-traités. Leur workflow est le suivant:
-		- Si le le fichier est vide: mettre la valeur du flag global "file_empty" à true et terminer le thread (return)
+		- Si le fichier est vide: mettre la valeur du flag global "file_empty" à true et terminer le thread (return)
 		- Sinon, si le buffer n'est pas rempli: lire un hash et l'ajouter au buffer. Incrémenter l'indice faisant référence au dernier indice occupé du buffer.
 		- Si le buffer est rempli: bloquer le thread jusqu'à ce qu'une place du buffer soit libérée.
 
@@ -44,12 +44,15 @@ Architecture:
 	
 
 4) Informations communiquées entre les threads:
-	- Les ressources partagées sont  "liste des meilleurs candidats", "liste des hash pas encore traités" et "best_score". Ainsi, les informations communiquées entre les threads sont celles qui sont contenues dans ces variables, à savoir: les hashes pas encore traités, le meilleur score à un instant donné et la liste des candidats les plus prometteurs à cet instant.
+	- Les ressources partagées sont "liste des meilleurs candidats", "liste des hash pas encore traités" et "best_score". Ainsi, les informations communiquées entre les threads sont celles qui sont contenues dans ces variables, à savoir: les hashes pas encore traités, le meilleur score à un instant donné et la liste des candidats les plus prometteurs à cet instant.
 	
 	- Des variables partagées permettent au threads de communiquer pour évaluer l'état d'avancement du programme. Ces variables sont: 'last_hash_index': l'indice du dernier hash non-traité présent dans le buffer, 'is_file_empty': une valeur booléenne permettant de savoir si le fichier a été lu entièrement ou non.
 	
 	- Ces ressources partagées se trouvent dans le heap, car cette zone mémoire est partagée entre les threads.
 	
+	
+AJOUTS:
+	Le buffer est une structure de données de type Last In First Out (car plus facile à gérer)
 
 
 Autres options considérées (mais moins bien):
