@@ -124,18 +124,22 @@
 	
 	\begin{itemize}
 		\item 
-		Les \textbf{mots de passe non-traités}.
-		Ceux-ci sont représentés par un tableau de trente-deux entiers sous la forme \textit{uint8\_t} car un hash est encodé sur trente-deux bytes.
-		Plus simplement, l'énoncé indique aussi que l'argument demandé par la fonction \textit{reversehash} doit être de la forme citée précédemment.
+		Les \textbf{mots de passe non-traités (hashes)}.
+		Ceux-ci seront représentés par un tableau de trente-deux entiers sous la forme \lstinline{uint8_t} car un hash est encodé sur trente-deux bytes.
+		Plus simplement, l'énoncé indique aussi que l'argument demandé par la fonction \lstinline{reversehash} doit être de la forme citée précédemment;
 		
 		\item 
-		L'\textbf{ensemble des mots de passe non-traités}. Ceux-ci seront stockés dans un buffer (un tableau de pointeur vers des \textit{uint8\_t}) de taille prédéfinie et rempli de hashes non-traités. Il est à noter que si la taille du fichier à lire excède la capacité du buffer, la partie qui n'a pas pû être insérée sera ajoutée au buffer par la suite. Notons aussi que le buffer est une structure de type \textit{Last In First Out}.
+		L'\textbf{ensemble des mots de passe non-traités}. Ceux-ci seront stockés dans un buffer (un tableau de pointeurs vers des tableaux de trente-deux \lstinline{uint8_t}) de taille prédéfinie. Il est à noter que si la taille du fichier à lire excède la capacité du buffer, la partie qui n'a pas pu être insérée sera ajoutée au buffer par la suite. Notons aussi que le buffer sera une structure de type \textit{Last In First Out};
 		
 		\item % Dans le .txt : liste chainée de "char*" - en réalité, plutôt des pointeurs vers des tableaux me semble-t-il?
-		L'\textbf{ensemble des mots de passe constituants les \textit{meilleurs candidats} à un moment donné}. Ceux-ci sont stockés dans une liste chainée dont les données sont des pointeurs vers des tableau de caractères (autrement dit des pointeurs de pointeurs de caractères) qui représentent les versions déchiffrées des mots de passe retenus comme \textit{meilleurs candidats}.
+		L'\textbf{ensemble des mots de passe constituants les \textit{meilleurs candidats} à un moment donné}.
+		Ceux-ci seront stockés en clair dans une liste chaînée dont les données seront des pointeurs vers des tableaux de caractères (autrement dit des pointeurs de pointeurs vers des \lstinline{char}) représentant les versions déchiffrées des mots de passe retenus comme \textit{meilleurs candidats}.
 		
-		\item %,note supplémentaire, peut-être pas utile?
-		\textbf{Note} : il est intéressant de remarquer qu'aucune structure n'est utilisée pour représenter un mot de passe car il n'est jamais utile d'accéder en même temps à la version codée et décodée d'un mot de passe en même temps. Dès que celui-ci a été traité, sa version codée peut être oubliée. Les mots de passe seront donc soit représentés par des \textit{int8\_t password[32]} comme cité précédemment, soit par des \textit{char*} de taille inconnue avant exécution du programme (les versions en clair).
+		%\item %,note supplémentaire, peut-être pas utile?
+		% En effet, c'est bien pour répondre à des questions éventuelles mais pas forcément utile dans le rapport.
+		%\textbf{Note} : il est intéressant de remarquer qu'aucune structure n'est utilisée pour représenter un mot de passe car il n'est jamais utile d'accéder en même temps à la version codée et décodée d'un mot de passe en même temps.
+		%Dès que celui-ci a été traité, sa version codée peut être oubliée.
+		%Les mots de passe seront donc soit représentés par des \textit{int8\_t password[32]} comme cité précédemment, soit par des \textit{char*} de taille inconnue avant exécution du programme (les versions en clair).
 		
 	\end{itemize}
 	
@@ -144,40 +148,44 @@
 	\noindent
 	Notre programme comportera plusieurs types de threads, à savoir :
 	
-	\begin{enumerate}
+	\begin{itemize}
 		\item
 		Le \textbf{thread principal}.
-		Il s'agit du thread dans lequel s'exécute la fonction \lstinline{main} et qui permet de gérer tous les autres threads du programme.
-		Il est donc le parent des threads décrits ci-dessous.
-		Son rôle est de récupérer les arguments dans \lstinline{argv} afin d'y réagir de manière appropriée, de créer les diverses ressources partagées ainsi que les mécanismes de protection de celles-ci (mutex, sémaphores, etc), de lancer et de terminer les threads de lecture et de calcul décrits plus bas.
-		Avant que le programme ne termine son exécution, ce thread permet aussi de gérer le "retour vers l'utilisateur", c'est-à-dire qu'il se charge d'informer l'utilisateur du résultat des calculs;
+		Il s'agit du thread dans lequel s'exécutera la fonction \lstinline{main} et qui permettra de gérer tous les autres threads du programme.
+		Il sera donc le parent des threads décrits ci-dessous.
+		Son rôle sera de récupérer les arguments dans \lstinline{argv} afin d'y réagir de manière appropriée, de créer les diverses ressources partagées ainsi que les mécanismes de protection de celles-ci (mutex, sémaphores, etc), de lancer et de terminer les threads de lecture et de calcul décrits plus bas.
+		Avant que le programme ne termine son exécution, ce thread permettra aussi de gérer le "retour vers l'utilisateur", c'est-à-dire qu'il se chargera d'informer l'utilisateur du résultat des calculs;
 		
 		\item
 		Les \textbf{threads de lecture}.
-		Il s'agit de threads \textbf{producteurs} qui se chargent de lire le fichier de hashes dans un buffer de taille fixe à déterminer.
-		Il en existe un nombre prédéfini que nous devrons également déterminer à l'aide d'une analyse du remplissage du buffer lors de l'exécution.
-		Ces threads devront être bloqués quand le buffer est rempli et ils se termineront quand le fichier aura été lu dans son entièreté;
+		Il s'agit de threads \textbf{producteurs} qui se chargeront de lire le fichier de hashes dans un buffer de taille fixe à déterminer.
+		Il en existera un nombre prédéfini que nous devrons également déterminer à l'aide d'une analyse du remplissage du buffer lors de l'exécution.
+		Ces threads devront être bloqués quand le buffer sera rempli et ils se termineront quand le fichier aura été lu dans son entièreté;
 		
 		\item
 		Les \textbf{threads de calcul}.
-		Il s'agit de threads \textbf{consommateurs} dont il existe $N$ instances, avec $N$ une valeur précisée en argument par l'utilisateur et dont la valeur par défaut est $1$.
-		Ces threads ont pour rôle d'inverser les hashes présents dans le buffer mentionné ci-dessus, puis de déterminer le "score" du mot de passe obtenu afin de pouvoir mettre à jour la liste des candidats en conséquence.
-		Quand le buffer est vide, ces threads sont bloqués mais ils ne se terminent pas tant que le fichier n'a pas été lu dans son entièreté.
-	\end{enumerate}
+		Il s'agit de threads \textbf{consommateurs} dont il existera $N$ instances, avec $N$ une valeur précisée en argument par l'utilisateur et dont la valeur par défaut sera $1$.
+		Ces threads auront pour rôle d'inverser les hashes présents dans le buffer mentionné ci-dessus, puis de déterminer le "score" du mot de passe obtenu afin de pouvoir mettre à jour la liste des candidats en conséquence.
+		Quand le buffer sera vide, ces threads seront bloqués mais ils ne se termineront pas tant que le fichier n'aura pas été lu dans son entièreté.
+	\end{itemize}
 	
 	\noindent
 	Les fonctions exécutées par nos threads auront un retour de type \lstinline{int} afin de pouvoir retourner des codes d'erreur en cas de besoin.
 
 \section{Méthodes de communication entre les threads}
-\noindent
-	Le programme utilisant le modèle du \textit{producteur-consommateur}, il faudra utiliser deux sémaphores. Le premier, appelé \textit{empty}, représentera le nombre de places libres dans le buffer et sera initialisé à une valeur \textit{M}, avec \textit{M} la taille du buffer. Le second sémaphore sera appelé \textit{full}, représentera le nombre de places occupées dans le buffer et sera initialisé à zéro.
-	Enfin, le buffer sera protégé par un mutex.
-
+%\noindent
+	Le programme utilisant le modèle des \textit{producteurs et consommateurs}, il faudra utiliser deux sémaphores.
+	Le premier, appelé \lstinline{empty}, représentera le nombre de places libres dans le buffer et sera initialisé à une valeur \textit{M} égale à la taille du buffer.
+	Le second sémaphore sera appelé \lstinline{full}, représentera le nombre de places occupées dans le buffer et sera initialisé à zéro.\\	
+	
+	Aussi, les différentes ressources partagées entre les threads et mentionnées dans la section \textit{\nameref{sec:shared_data}} seront protégées par des mutex.
+ 
 \section{Informations communiquées entre les threads}
+\label{sec:shared_data}
 \noindent
 	Au travers de variables partagées situées dans le heap, les threads se communiqueront les informations suivantes:
 	
-	\begin{enumerate}
+	\begin{itemize}
 		\item
 		L'\textbf{état de lecture du fichier}.
 		Cette information sera communiquée entre les threads de lecture et de calcul.
@@ -196,7 +204,7 @@
 		\item
 		Les \textbf{meilleurs candidats} à un instant donné, contenus dans la liste chaînée décrite dans la section \textit{\nameref{sec:data_structures}}, ainsi que le \textbf{meilleur "score"} en ce même instant donné, représenté par une variable "\lstinline{best_score}" de type \lstinline{int}, constituent une information échangée par les threads de calcul entre eux, ainsi qu'avec le thread principal.
 		
-	\end{enumerate}
+	\end{itemize}
 
 
 \end{document}
