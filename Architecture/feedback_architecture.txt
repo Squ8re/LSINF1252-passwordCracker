@@ -6,7 +6,6 @@ sur les threads de calcul.
 
 N threads de calcul lisent les hashes dans ce buffer et les inversent. Idéalement, N = nombre de coeurs à notre disposition (généralement 4)
 
-Ces threads mettent, dans  un second buffer, les versions "en clair". La taille de ce buffer est de (?). Le programme est efficace si ce buffer est
-toujours vide, car ainsi on sait que le(s) thread(s) cité(s) ci-après ne bloque(nt) pas les threads de calcul.
+Ces threads mettent, dans  un second buffer, les versions "en clair". La taille de ce buffer est de k*N (en reprenant la même logique que précédemment). Le programme est efficace si ce buffer est toujours vide, car ainsi on sait que le(s) thread(s) cité(s) ci-après ne bloque(nt) pas les threads de calcul.
 
 Finalement, 1 (ou 2) threads s'occuppent de gérer les meilleurs candidats, le meilleur score, etc.
