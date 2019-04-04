@@ -1,0 +1,7 @@
+Fonctions:
+
+	- main: parsing + créer les threads, mutex etc + retour vers user
+	- thread de lecture
+	- thread de reversing
+	- thread pour gérer les meilleurs scores etc
+	
