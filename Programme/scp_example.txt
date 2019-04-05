@@ -1,0 +1,18 @@
+eurod@ASUS-EDDY MINGW64 ~/Desktop
+$ scp primes.c evannini@studssh.info.ucl.ac.be:/etinfo/users/2019/evannini/michel.c
+Enter passphrase for key '/c/Users/eurod/.ssh/id_rsa':
+primes.c                                                                                                                                                                         100%    0     0.0KB/s   00:00
+
+eurod@ASUS-EDDY MINGW64 ~/Desktop
+$ ssh evannini@studssh.info.ucl.ac.be
+Enter passphrase for key '/c/Users/eurod/.ssh/id_rsa':
+Last login: Fri Apr  5 11:33:05 2019 from 2001:6a8:3081:6f13:d9a8:c3dd:b8:70e4
+studssh:~ evannini$ ls
+Desktop  Documents  Downloads  michel.c  Music  Pictures  Public  Templates  Videos
+studssh:~ evannini$
+
+
+
+cf. aussi:
+SCP: https://wiki.student.info.ucl.ac.be/Documentation/Scp
+SSH: https://wiki.student.info.ucl.ac.be/Documentation/Ssh
