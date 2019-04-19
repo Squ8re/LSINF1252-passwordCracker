@@ -6,3 +6,22 @@ Fonctions:
 	- thread pour gérer les meilleurs scores etc (A)
 
 Travailler sur des branches.
+Afficher des messages d'erreur: fprintf(stderr, "This is an error called: %s and this is a number: %d", err_name, 42);
+
+Ne pas oublier de malloc l'espace pour le '\0' dans les strings, sachant que strlen() donne le nombre de caracteres SANS le '\0'.
+
+Pas besoin de free les mallocs avant de faire un exit ou un return du main.
+Faire les fonctions dans un fichier separe: https://stackoverflow.com/questions/19732959/how-to-move-c-functions-into-separate-file
+Note: attention a la maniere d'appeler gcc dans ce cas.
+
+gcc -o cracker -Wall -Werror .\src\main.c .\src\custom_sleep.c
+
+Tests:
+Option inexistante donnee
+Option existante necessitant une valeur donnee sans valeur
+Option existante donnee plusieurs fois
+Option necessaire non-donnee
+Donner une valeur string a une option qui attend un int
+Plusieurs cas en meme temps
+Nombre de threads negatif
+Mettre des fichiers qui n'existent pas
