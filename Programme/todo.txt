@@ -4,4 +4,5 @@ Fonctions:
 	- thread de lecture (E)
 	- thread de reversing (A)
 	- thread pour gérer les meilleurs scores etc (A)
-	
+
+Travailler sur des branches.

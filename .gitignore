@@ -56,3 +56,6 @@ dkms.conf
 *.out
 *.log
 *.synctex.gz
+
+# Eclipse IDE files
+*.project
