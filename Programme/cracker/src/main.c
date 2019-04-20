@@ -11,7 +11,11 @@
 #include <stdint.h>
 #include "parsing.h"
 #include "utilities.h"
+#include "init.h"
+#include "linked_list.h"
 
+#define HASH_LENGTH 32  // Il y a 32 bytes par hash
+#define BUFFER_RATIO 2  // Ratio: (longueur des buffers)/(nombre de threads de calcul)
 
 
 // Fonction temporaire qui devra etre remplacee par la fonction de lecture de fichiers
@@ -53,71 +57,27 @@ int main(int argc, char **argv){
 	}
 
 	// Creation des buffers
-	int k = 2;  // k tel que le buffer de hash est de longueur k * nombre de threads de calcul (TODO: a mettre en #define?)
-	int hash_length = 32;  // Longueur d'un hash en bytes (TODO: a passer en #define, ou a hardcoder directement?)
+	uint8_t **hashes_buffer;
+	char **reversed_buffer;
+	linked_list_t best_candidates;  // Liste chainee qui contiendra les meilleurs candidats a tout instant
+	create_buffers(&hashes_buffer, &reversed_buffer, &user_options, BUFFER_RATIO, HASH_LENGTH);
 
-	// Buffer des hashes
-	uint8_t **hashes_buffer = (uint8_t **) malloc_retry(10, 10, k * user_options.n_threads * sizeof(uint8_t *));
-	if(!hashes_buffer){
-		fprintf(stderr, "Memory could not be accessed (malloc failure).\n");
-		exit(EXIT_FAILURE);
-	}
 
-	for(int i = 0; i < k * user_options.n_threads; i++){
-		hashes_buffer[i] = (uint8_t *) malloc_retry(10, 10, hash_length * sizeof(uint8_t));
-		if(!hashes_buffer[i]){
-			fprintf(stderr, "Memory could not be accessed (malloc failure).\n");
-			exit(EXIT_FAILURE);
-		}
-	}
+	// Creation et demarrage des threads (rappel: sous windows ceci pourrait ne pas marcher)
+	threads_t program_threads = {.read_func = &read_thread_placeholder,
+			                     .reverse_func = &reverse_thread_placeholder,
+	                             .cand_func = &cand_thread_placeholder};
+	launch_threads(&program_threads, &user_options);
 
-	// Buffer des mots de passe en clair (apres inversion, donc)
-	uint8_t **reversed_buffer = (uint8_t **) malloc_retry(10, 10, k * user_options.n_threads * sizeof(uint8_t *));
-	if(!reversed_buffer){
-		fprintf(stderr, "Memory could not be accessed (malloc failure).\n");
-		exit(EXIT_FAILURE);
-	}
-
-	for(int i = 0; i < k * user_options.n_threads; i++){
-		reversed_buffer[i] = (uint8_t *) malloc_retry(10, 10, hash_length * sizeof(uint8_t));
-		if(!reversed_buffer[i]){
-			fprintf(stderr, "Memory could not be accessed (malloc failure).\n");
-			exit(EXIT_FAILURE);
-		}
-	}
-
-	// Creation des threads (rappel: sous windows ceci ne pourrait pas marcher)
-	// Rappel: il faut un argument special dans la commande gcc pour tenir compte des threads
-	pthread_t reader;  // On utilise un seul thread de lecture comme mentionne dans l'architecture
-	pthread_t *reversers = (pthread_t *) malloc_retry(10, 10,
-			user_options.n_threads * sizeof(pthread_t)); // Les threads qui feront l'inversion de hashes
-
-	if(!reversers){
-		fprintf(stderr, "Memory could not be accessed (malloc failure).\n");
-		exit(EXIT_FAILURE);
-	}
-	pthread_t cand_manager;  // "candidate manager": thread qui s'arrange pour ne garder que les meilleurs pwd
-
-	if(pthread_create(&reader, NULL, &read_thread_placeholder, NULL) != 0){
-		fprintf(stderr, "Thread could not be created.\n");
-		exit(EXIT_FAILURE);
-	}
-
-	for(int i = 0; i < user_options.n_threads; i++){
-		if(pthread_create(&reversers[i], NULL, &reverse_thread_placeholder, NULL) != 0){
-			fprintf(stderr, "Thread could not be created.\n");
-			exit(EXIT_FAILURE);
-		}
-	}
-
-	if(pthread_create(&cand_manager, NULL, &cand_thread_placeholder, NULL) != 0){
-		fprintf(stderr, "Thread could not be created.\n");
-		exit(EXIT_FAILURE);
-	}
-
+	// temporaire
+	pthread_t reader = program_threads.reader;
+	pthread_t *reversers = program_threads.reversers;
+	pthread_t cand_manager = program_threads.cand_manager;
+	// </temporaire>
 
 	// Terminaison des threads
 	// TODO: Il faudra remplacer les "NULL"
+	// TODO: utiliser la structure 'threads'
 	if(pthread_join(reader, NULL) != 0){
 		fprintf(stderr, "Error with pthread_join.\n");
 	}

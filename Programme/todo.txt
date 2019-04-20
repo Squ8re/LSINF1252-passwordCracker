@@ -18,6 +18,20 @@ gcc -o cracker -Wall -Werror .\src\main.c .\src\custom_sleep.c
 
 Certaines choses se retrouvent dans la stack de main (ou d'une autre fonction) et d'autres dans le heap (partage). Pourquoi? -> se poser la question et verifier qu'on a pas fait n'importe quoi au niveau de ce choix-la. En gros, il faut malloc ce qu'on veut pouvoir partager entre les threads.
 
+Sous Linux, parfois gcc se fache et demande un flag "c99" ou "gnu99" -> utiliser le "gnu99" et PAS le "c99" sinon la fonction nanosleep de time.h n'est pas reconnue.
+
+Compilation sous UDS: gcc -Wall -Werror -std=gnu99 -o cracker ./main.c ...autres .c requis...
+
+Pour tester de printf avec des delais: ne pas oublier de flush (sinon tout s'affiche en une fois a la fin): fflush(stdout);
+
+Faire des erreurs un peu explicites (avec errno?)
+
+Mettre 'const' ce qui peut l'etre (securite) -> attention, un const sur un pointeur multiple ne protege que le "premier etage"
+
+Si on remplace les exit par des return error_code, il faudra regarder la ou des free sont necessaires.
+
+Rajouter des tests de type ( == NULL) sur les arguments des fonctions?
+
 Tests:
 Option inexistante donnee
 Option existante necessitant une valeur donnee sans valeur
