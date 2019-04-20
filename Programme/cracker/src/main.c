@@ -7,14 +7,17 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-// #include <pthread.h>
+#include <pthread.h>
+#include <stdint.h>
 #include "parsing.h"
+#include "utilities.h"
 
 
 
 // Fonction temporaire qui devra etre remplacee par la fonction de lecture de fichiers
 void *read_thread_placeholder(void *param){
 	printf("'read_thread_placeholder' was called.\n");
+	fflush(stdout);
 	return NULL;
 }
 
@@ -22,6 +25,7 @@ void *read_thread_placeholder(void *param){
 // Fonction temporaire qui devra etre remplacee par la fonction d'inversion de hashes
 void *reverse_thread_placeholder(void *param){
 	printf("'reverse_thread_placeholder' was called.\n");
+	fflush(stdout);
 	return NULL;
 }
 
@@ -29,6 +33,7 @@ void *reverse_thread_placeholder(void *param){
 // Fonction temporaire qui devra etre remplacee par la fonction de gestion des candidats
 void *cand_thread_placeholder(void *param){
 	printf("'cand_thread_placeholder' was called.\n");
+	fflush(stdout);
 	return NULL;
 }
 
@@ -45,32 +50,6 @@ int main(int argc, char **argv){
 			user_options.n_files);
 	for(int i = 0; i < user_options.n_files; i++){
 		printf("input file #%d: %s\n", i + 1, user_options.in_files_names[i]);
-	}
-
-
-	/*
-
-	// Creation des threads (rappel: sous windows ceci ne pourrait pas marcher)
-	// Rappel: il faut un argument special dans la commande gcc pour tenir compte des threads
-	pthread_t reader;  // On utilise un seul thread de lecture comme mentionne dans l'architecture
-	pthread_t *reversers[user_options.n_threads]; // Les threads qui feront l'inversion de hashes
-	pthread_t cand_manager;  // "candidate manager": thread qui s'arrange pour ne garder que les meilleurs pwd
-
-	if(pthread_create(&reader, NULL, &read_thread_placeholder, NULL) != 0){
-		fprintf(stderr, "Thread could not be created.\n");
-		exit(EXIT_FAILURE);
-	}
-
-	for(int i = 0; i < user_options.n_threads; i++){
-		if(pthread_create(&reversers[i], NULL, &reverse_thread_placeholder, NULL) != 0){
-			fprintf(stderr, "Thread could not be created.\n");
-			exit(EXIT_FAILURE);
-		}
-	}
-
-	if(pthread_create(&cand_manager, NULL, &cand_thread_placeholder, NULL) != 0){
-		fprintf(stderr, "Thread could not be created.\n");
-		exit(EXIT_FAILURE);
 	}
 
 	// Creation des buffers
@@ -94,21 +73,64 @@ int main(int argc, char **argv){
 
 	// Buffer des mots de passe en clair (apres inversion, donc)
 	uint8_t **reversed_buffer = (uint8_t **) malloc_retry(10, 10, k * user_options.n_threads * sizeof(uint8_t *));
-		if(!reversed_buffer){
+	if(!reversed_buffer){
+		fprintf(stderr, "Memory could not be accessed (malloc failure).\n");
+		exit(EXIT_FAILURE);
+	}
+
+	for(int i = 0; i < k * user_options.n_threads; i++){
+		reversed_buffer[i] = (uint8_t *) malloc_retry(10, 10, hash_length * sizeof(uint8_t));
+		if(!reversed_buffer[i]){
 			fprintf(stderr, "Memory could not be accessed (malloc failure).\n");
 			exit(EXIT_FAILURE);
 		}
+	}
 
-		for(int i = 0; i < k * user_options.n_threads; i++){
-			reversed_buffer[i] = (uint8_t *) malloc_retry(10, 10, hash_length * sizeof(uint8_t));
-			if(!reversed_buffer[i]){
-				fprintf(stderr, "Memory could not be accessed (malloc failure).\n");
-				exit(EXIT_FAILURE);
-			}
+	// Creation des threads (rappel: sous windows ceci ne pourrait pas marcher)
+	// Rappel: il faut un argument special dans la commande gcc pour tenir compte des threads
+	pthread_t reader;  // On utilise un seul thread de lecture comme mentionne dans l'architecture
+	pthread_t *reversers = (pthread_t *) malloc_retry(10, 10,
+			user_options.n_threads * sizeof(pthread_t)); // Les threads qui feront l'inversion de hashes
+
+	if(!reversers){
+		fprintf(stderr, "Memory could not be accessed (malloc failure).\n");
+		exit(EXIT_FAILURE);
+	}
+	pthread_t cand_manager;  // "candidate manager": thread qui s'arrange pour ne garder que les meilleurs pwd
+
+	if(pthread_create(&reader, NULL, &read_thread_placeholder, NULL) != 0){
+		fprintf(stderr, "Thread could not be created.\n");
+		exit(EXIT_FAILURE);
+	}
+
+	for(int i = 0; i < user_options.n_threads; i++){
+		if(pthread_create(&reversers[i], NULL, &reverse_thread_placeholder, NULL) != 0){
+			fprintf(stderr, "Thread could not be created.\n");
+			exit(EXIT_FAILURE);
 		}
+	}
 
-	*/
+	if(pthread_create(&cand_manager, NULL, &cand_thread_placeholder, NULL) != 0){
+		fprintf(stderr, "Thread could not be created.\n");
+		exit(EXIT_FAILURE);
+	}
 
+
+	// Terminaison des threads
+	// TODO: Il faudra remplacer les "NULL"
+	if(pthread_join(reader, NULL) != 0){
+		fprintf(stderr, "Error with pthread_join.\n");
+	}
+
+	for(int i = 0; i < user_options.n_threads; i++){
+		if(pthread_join(reversers[i], NULL) != 0){
+			fprintf(stderr, "Error with pthread_join.\n");
+		}
+	}
+
+	if(pthread_join(cand_manager, NULL) != 0){
+		fprintf(stderr, "Error with pthread_join.\n");
+	}
 
 	return EXIT_SUCCESS;
 }

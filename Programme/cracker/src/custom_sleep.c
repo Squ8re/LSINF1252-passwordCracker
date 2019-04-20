@@ -9,8 +9,11 @@
 		Sleep(delay_ms);
 	}
 #else
-	#include <unistd.h>
+	#include <time.h>
 	void custom_sleep(unsigned int delay_ms){
-		delay(delay_ms);
+		long delay_ns = ((long) delay_ms) * 1000000;
+		long nanoseconds = delay_ns % 1000000000;
+		time_t seconds = (delay_ns - nanoseconds) / 1000000000;
+		nanosleep((const struct timespec[]){{seconds, nanoseconds}}, NULL);
 	}
 #endif
