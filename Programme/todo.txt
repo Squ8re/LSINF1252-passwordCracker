@@ -16,6 +16,8 @@ Note: attention a la maniere d'appeler gcc dans ce cas.
 
 gcc -o cracker -Wall -Werror .\src\main.c .\src\custom_sleep.c
 
+Certaines choses se retrouvent dans la stack de main (ou d'une autre fonction) et d'autres dans le heap (partage). Pourquoi? -> se poser la question et verifier qu'on a pas fait n'importe quoi au niveau de ce choix-la. En gros, il faut malloc ce qu'on veut pouvoir partager entre les threads.
+
 Tests:
 Option inexistante donnee
 Option existante necessitant une valeur donnee sans valeur

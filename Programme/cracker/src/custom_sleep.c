@@ -1,4 +1,7 @@
+// Fichier qui permet d'avoir une meme fonction de "delay" pour plusieurs OS
+
 #include "custom_sleep.h"
+
 
 #ifdef _WIN32
 	#include <windows.h>
