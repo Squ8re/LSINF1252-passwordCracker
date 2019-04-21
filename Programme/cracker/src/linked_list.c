@@ -10,17 +10,12 @@
 void add_node(linked_list_t *list, char *contents){
 	// Creer et remplir la nouvelle node
 	node_t *new_node = (node_t *) malloc_retry(10, 10, sizeof(node_t));
-	if(!new_node){
-		fprintf(stderr, "Memory could not be accessed (malloc failure).\n");
-		exit(EXIT_FAILURE);
-	}
+	check_malloc((void *) new_node, "Failed to allocate memory for 'new_node' in function 'linked_list.c/add_node'");
 
 	new_node->next = NULL;
 	new_node->contents = (char *) malloc_retry(10, 10, sizeof(char) * (1 + strlen(contents)));
-	if(!(new_node->contents)){
-		fprintf(stderr, "Memory could not be accessed (malloc failure).\n");
-		exit(EXIT_FAILURE);
-	}
+	check_malloc((void *) new_node->contents, "Failed to allocate memory for 'new_node->contents' in function"
+			                                  " 'linked_list.c/add_node'");
 	strcpy(new_node->contents, contents);
 
 	// Ajouter la node a la fin de la liste

@@ -6,6 +6,7 @@
 #include <stdbool.h>
 #include <ctype.h>
 #include <unistd.h>
+
 #include "parsing.h"
 #include "utilities.h"
 
@@ -36,10 +37,8 @@ void parse_options(int argc, char **argv, options_t *user_options){
 			if(!user_options->o_flag){
 				user_options->o_flag = true;
 				user_options->out_file_name = (char *) malloc_retry(10, 10, sizeof(char) * (1 + strlen(optarg)));  // Ne pas oublier le '\0'!
-				if(!user_options->out_file_name){
-					fprintf(stderr, "Memory could not be accessed (malloc failure).\n");
-					exit(EXIT_FAILURE);
-				}
+				check_malloc((void *) user_options->out_file_name, "Failed to allocate memory for 'user_options->filename'"
+						                                           "in function 'parsing.c/parse_options'");
 
 				// TODO: On ne verifie pas que le fichier existe car si il n'existe pas, on pourrait vouloir le creer
 
@@ -101,10 +100,9 @@ void parse_options(int argc, char **argv, options_t *user_options){
 	}
 
 	user_options->in_files_names = (char **) malloc_retry(10, 10, sizeof(char *) * (user_options->n_files));
-	if(!user_options){
-		fprintf(stderr, "Memory could not be accessed (malloc failure).\n");
-		exit(EXIT_FAILURE);
-	}
+	check_malloc((void *) user_options->in_files_names, "Failed to allocate memory for 'user_options->in_files_names"
+			                                            " in function 'parsing.c/parse_options'");
+
 	for(int i = optind;  i < argc; i++){
 		char *filename = argv[i];
 		// Verifier que le fichier existe
@@ -113,10 +111,8 @@ void parse_options(int argc, char **argv, options_t *user_options){
 			exit(EXIT_FAILURE);
 		}
 		user_options->in_files_names[i - optind] = (char *) malloc_retry(10, 10, sizeof(char *) * (1 + strlen(filename)));
-		if(!user_options->in_files_names[i - optind]){
-			fprintf(stderr, "Memory could not be accessed (malloc failure).\n");
-			exit(EXIT_FAILURE);
-		}
+		check_malloc((void *) (user_options->in_files_names)[i - optind], "Failed to allocate memory for '(user_options->"
+			 	                                       "in_files_names)[i - optind] in function 'parsing.c/parse_options'");
 		strcpy(user_options->in_files_names[i - optind], filename);
 	}
 }

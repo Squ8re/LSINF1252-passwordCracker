@@ -32,6 +32,14 @@ Si on remplace les exit par des return error_code, il faudra regarder la ou des 
 
 Rajouter des tests de type ( == NULL) sur les arguments des fonctions?
 
+condition de terminaison des threads consommateurs: "file_read && buffer_empty"
+
+Aller relire les questions sur Moodle
+
+https://sites.uclouvain.be/SystInfo/notes/Theorie/html/Threads/threads.html -> "un thread doit pouvoir acceder a ses arguments"
+
+detecter les memleaks: valgrind (sudo apt install valgrind), puis cf. http://valgrind.org/docs/manual/QuickStart.html
+
 Tests:
 Option inexistante donnee
 Option existante necessitant une valeur donnee sans valeur
@@ -41,3 +49,4 @@ Donner une valeur string a une option qui attend un int
 Plusieurs cas en meme temps
 Nombre de threads negatif
 Mettre des fichiers qui n'existent pas
+Changer l'ordre des arguments
