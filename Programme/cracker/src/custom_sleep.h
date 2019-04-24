@@ -3,8 +3,6 @@
 #ifndef CUST_SLEEP_HEADER
 #define CUST_SLEEP_HEADER
 
-
-void custom_sleep(unsigned int delay_ms);
-
+int custom_sleep(unsigned int delay_ms);
 
 #endif
