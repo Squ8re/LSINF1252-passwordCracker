@@ -10,11 +10,10 @@ Afficher des messages d'erreur: fprintf(stderr, "This is an error called: %s and
 
 Ne pas oublier de malloc l'espace pour le '\0' dans les strings, sachant que strlen() donne le nombre de caracteres SANS le '\0'.
 
-Pas besoin de free les mallocs avant de faire un exit ou un return du main.
 Faire les fonctions dans un fichier separe: https://stackoverflow.com/questions/19732959/how-to-move-c-functions-into-separate-file
 Note: attention a la maniere d'appeler gcc dans ce cas.
 
-gcc -o cracker -Wall -Werror .\src\main.c .\src\custom_sleep.c
+gcc -o cracker -Wall -Werror -pthread .\src\*.c
 
 Certaines choses se retrouvent dans la stack de main (ou d'une autre fonction) et d'autres dans le heap (partage). Pourquoi? -> se poser la question et verifier qu'on a pas fait n'importe quoi au niveau de ce choix-la. En gros, il faut malloc ce qu'on veut pouvoir partager entre les threads.
 
