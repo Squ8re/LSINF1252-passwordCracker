@@ -117,7 +117,7 @@ void *read_files(void *reader_params) {
 			if (sem_post(shared->hashes_full) == -1) {
 				free(read_hash);
 				fprintf(stderr,
-						"Failed to access semaphore 'shared->hashes_buffer_mtx' in function "
+						"Failed to access semaphore 'shared->hashes_full' in function "
 								"'reader_thread.c/read_files'.\n");
 				return ((void *) -1);
 			}
