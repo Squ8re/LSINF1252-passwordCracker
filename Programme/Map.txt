@@ -1,0 +1,21 @@
+Reverse :
+	- À faire :
+		1) prends un fichier du buffer et le stocke dans un pointeur.
+		2) applique la fonction reverse hash a un fichier.
+		3) stocke le fichier dans le buffer des fichiers pas encore triés.
+
+	- ressources partagées :
+		nom global Eduardo = "shared"
+		type de structure : shared_data_t
+		1) hashes_buffer_mtx   -> mutex du buffer "hashes_buffer".
+		2) reversed_buffer_mtx -> mutex du buffer "reversed_buffer".
+		3) hashes_empty        -> premier sémaphore du buffer "hashes_buffer".
+		4) hashes_full         -> second sémaphore du buffer "hashes_buffer".
+		5) reversed_empty      -> même logique.
+		6) reversed_full       -> même logique.
+
+	- Fonctions utiles :
+		1) pthread_mutex_lock(mutex)
+		2) pthread_mutex_unlock(mutex)
+		3) sem_post(semaphore)   	-> permet d'augmenter le nombre d'un semaphore
+		4) sem_wait(semaphore)		-> permet de decrementer le nombre d'un semaphore
