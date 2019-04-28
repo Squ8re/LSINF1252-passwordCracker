@@ -1,6 +1,6 @@
 Reverse :
 	- À faire :
-		1) prends un fichier du buffer et le stocke dans un pointeur.
+OK - a tester	1) prends un fichier du buffer et le stocke dans un pointeur.
 		2) applique la fonction reverse hash a un fichier.
 		3) stocke le fichier dans le buffer des fichiers pas encore triés.
 
