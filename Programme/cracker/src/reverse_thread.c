@@ -119,7 +119,7 @@ void *reverse(shared_data_t *sharedData){
 		return ((void *) -1);}
 
 	// Application de la fonction.
-	if(!(reversehash(hash,(sharedData->reversed_buffer)[firstFreeIndex],sharedData->hash_length))){
+	if(!((int) reversehash(hash,(sharedData->reversed_buffer)[firstFreeIndex],sharedData->hash_length))){
 		fprintf(stderr, "Failed to reverse hash in function 'reverse_thread.c/reverse'.\n");
 		return ((void *) -1);
 	}
