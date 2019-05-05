@@ -53,7 +53,7 @@ void *getHash(shared_data_t *sharedData, void *returnHash){
 	// On copie la valeur a recuperer et on la supprime du buffer
 	memcpy(returnHash,
 			(sharedData->hashes_buffer)[firstFullIndex],
-			sharedData->hash_length * sizeof(uint8_t));
+			32 * sizeof(uint8_t));  // TODO: Verifier la taille du fichier a copier.
 	free((sharedData->hashes_buffer)[firstFullIndex]);
 
 	// On libere le thread
