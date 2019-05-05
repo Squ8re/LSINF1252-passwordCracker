@@ -1,10 +1,18 @@
 Reverse :
 	- À faire :
 OK - a tester	1) prends un fichier du buffer et le stocke dans un pointeur.
-		2) applique la fonction reverse hash a un fichier.
-		3) stocke le fichier dans le buffer des fichiers pas encore triés.
-
-	- ressources partagées :
+OK		2) applique la fonction reverse hash a un fichier.
+OK		3) stocke le fichier dans le buffer des fichiers pas encore triés.
+Sort :
+	- À faire :
+		1) Crée une liste chainée contenant tous les éléments.
+		2) Prends un element de reverse
+		3) Verifie si cet element est bon
+		4) s'il est bon, ajout dans la liste chainee
+			4.2) S'il est mauvais, enleve
+			4.3) S'il est meilleur, nouvelle liste chainee.
+		5) 
+Ressources partagées :
 		nom global Eduardo = "shared"
 		type de structure : shared_data_t
 		1) hashes_buffer_mtx   -> mutex du buffer "hashes_buffer".
