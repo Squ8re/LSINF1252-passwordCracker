@@ -10,23 +10,12 @@
 #include "utilities.h"
 #include "init.h"
 #include "reader_thread.h"
+#include "reverse_thread.h"
+#include "sort_thread.h"
 
 #define HASH_LENGTH 32  // Il y a 32 bytes par hash
 #define BUFFER_RATIO 2  // Ratio: (longueur des buffers)/(nombre de threads de calcul)
 
-// Fonction temporaire qui devra etre remplacee par la fonction d'inversion de hashes
-void *reverse_thread_placeholder(void *param) {
-	printf("'reverse_thread_placeholder' was called.\n");
-	fflush(stdout);
-	return ((void *) 0);
-}
-
-// Fonction temporaire qui devra etre remplacee par la fonction de gestion des candidats
-void *cand_thread_placeholder(void *param) {
-	printf("'cand_thread_placeholder' was called.\n");
-	fflush(stdout);
-	return ((void *) 0);
-}
 
 int main(int argc, char **argv) {
 	// Mettre errno a 0 (pas d'erreur pour l'instant)
@@ -95,8 +84,8 @@ int main(int argc, char **argv) {
 	}
 
 	shared->threads_data->read_func = &read_files;
-	shared->threads_data->reverse_func = &reverse_thread_placeholder; // TODO: A modifier
-	shared->threads_data->cand_func = &cand_thread_placeholder; // TODO: A modifier
+	shared->threads_data->reverse_func = &reverse;
+	shared->threads_data->cand_func = &sort_passwords; // TODO: A modifier
 
 	if (launch_threads(shared) == -1) {
 		fprintf(stderr,

@@ -19,56 +19,57 @@
 
 /*
  * Cette fonction renvoie un pointeur de type void* pointant vers un hash.
- * @pre 	sharedData est de type shared_data_t et est correctement initialise,
- * 			returnHash doit contenir un espace en memoire de la taille d'un tableau de 32 bytes.
- * @post 	returnHash contient un hash crypte,
-		 	sharedData est modifie afin de ne plus contenir le hash qui a ete lu.
+ * @pre 	shared est de type shared_data_t et est correctement initialise,
+ * 			return_hash doit contenir un espace en memoire de la taille d'un tableau de shared->hash_length bytes.
+ * @post 	return_hash contient un hash crypte,
+		 	shared est modifie afin de ne plus contenir le hash qui a ete lu.
  * @return  renvoie un code erreur sous forme de void*.
  * 			retourne 0 en cas de reussite
  * 			retourne un autre chiffre (int) en cas d'erreur.
  */
-void *getHash(shared_data_t *sharedData, void *returnHash){
-	int firstFullIndex; 			// premier indice rempli
+void *get_hash(shared_data_t *shared, uint8_t **return_hash){
+	// TODO: (Ed): J'ai change le void * en uint8_t ** pour return_hash: check si ca implique pas qqes changements ci-dessous...
+	int first_full_index; 			// premier indice rempli
 	int errcode;					// gestion des codes erreurs
 	// Attente d'un slot rempli
-	if(sem_wait(sharedData->hashes_full) == -1){
+	if(sem_wait(shared->hashes_full) == -1){
 		fprintf(stderr,
-				"Failed to access semaphore 'sharedData->hashes_full' in function 'reverse_thread.c/getHash'.\n");
+				"Failed to access semaphore 'shared->hashes_full' in function 'reverse_thread.c/get_hash'.\n");
 		return ((void*) -1);}
 
 	// Blocage du buffer
-	if((errcode=pthread_mutex_lock(sharedData->hashes_buffer_mtx)) != 0){
+	if((errcode=pthread_mutex_lock(shared->hashes_buffer_mtx)) != 0){
 		fprintf(stderr,
-				"Failed to lock mutex 'sharedData->hashes_buffer_mtx in function 'reverse_thread.c/getHash'.\n");
+				"Failed to lock mutex 'shared->hashes_buffer_mtx in function 'reverse_thread.c/get_hash'.\n");
 		errno = errcode;
 		return ((void*) -1);}
 
 	// On recupere l'indice du premier slot rempli dans le buffer
-	if (sem_getvalue(sharedData->hashes_full, &firstFullIndex) == -1) {
+	if (sem_getvalue(shared->hashes_full, &first_full_index) == -1) {
 		fprintf(stderr,
-				"Failed to retrieve value from semaphore 'sharedData->hashes_full' in function "
-						"'reverse_thread.c/getHash'.\n");
+				"Failed to retrieve value from semaphore 'shared->hashes_full' in function "
+						"'reverse_thread.c/get_hash'.\n");
 		return ((void *) -1);}
 
 	// On copie la valeur a recuperer et on la supprime du buffer
-	memcpy(returnHash,
-			(sharedData->hashes_buffer)[firstFullIndex],
-			sharedData->hash_length * sizeof(uint8_t));
-	free((sharedData->hashes_buffer)[firstFullIndex]);
+	memcpy(return_hash,
+			(shared->hashes_buffer)[first_full_index],
+			shared->hash_length * sizeof(uint8_t));
+	free((shared->hashes_buffer)[first_full_index]);
 
 	// On libere le thread
-	if ((errcode = pthread_mutex_unlock(sharedData->hashes_buffer_mtx))) {
+	if ((errcode = pthread_mutex_unlock(shared->hashes_buffer_mtx))) {
 		fprintf(stderr,
-				"Failed to unlock mutex 'sharedData->hashes_buffer_mtx' in function "
-						"'reverse_thread.c/getHash'.\n");
+				"Failed to unlock mutex 'shared->hashes_buffer_mtx' in function "
+						"'reverse_thread.c/get_hash'.\n");
 		errno = errcode;
 		return ((void *) -1);}
 
 	// On indique qu'il y a un slot libre
-	if(sem_post(sharedData->hashes_empty) == -1){
+	if(sem_post(shared->hashes_empty) == -1){
 		fprintf(stderr,
-				"Failed to access semaphore 'sharedData->hashes_empty' in function "
-						"'reverse_thread.c/getHash'.\n");
+				"Failed to access semaphore 'shared->hashes_empty' in function "
+						"'reverse_thread.c/get_hash'.\n");
 		return((void*)-1);
 	}
 
@@ -77,82 +78,82 @@ void *getHash(shared_data_t *sharedData, void *returnHash){
 }
 /**
  * Cette fonction transforme un hash et le stock dans le buffer des fichiers qui ne sont pas tries.
- * @pre 	sharedData est de type shared_data_t et est correctement initialise.
- * @post	sharedData est modifie afin de contenir le mot de passe dechiffre dans le bon buffer.
- * 			sharedData ne contient plus le hash qui a decrypte.
+ * @pre 	shared est de type shared_data_t et est correctement initialise.
+ * @post	shared est modifie afin de contenir le mot de passe dechiffre dans le bon buffer.
+ * 			shared ne contient plus le hash qui a decrypte.
  * @return	renvoie un code erreur sous forme de void*.
  * 			retourne 0 en cas de reussite
  * 			retour un autre chiffre (int) en cas d'erreur.
  */
-void *reverse(shared_data_t *sharedData){
-	int firstFreeIndex; 			// premier indice rempli
+void *reverse(shared_data_t *shared){
+	int first_free_index; 			// premier indice rempli
 	int errcode;					// gestion des codes erreurs
 	// Recuperation d'un hash.
-	int* hash[] = (int *)(malloc(32));
+	uint8_t* hash[] = (uint8_t *)(malloc(shared->hash_length * sizeof(uint8_t)));
 	if(hash==-1){
 		fprintf(stderr, "Failed to allocate memory for 'hash' in function 'reverse_thread.c/reverse'.\n");
 		return ((void*) -1);
 	}
-	if(getHash(sharedData, (void*)(hash)) != 0){
+	if(get_hash(shared, hash) != 0){
 		fprintf(stderr,
-				"Failed to retrieve hash from 'sharedData->hashes_buffer' in function 'reverse_thread.c/reverse'.\n");
+				"Failed to retrieve hash from 'shared->hashes_buffer' in function 'reverse_thread.c/reverse'.\n");
 	}
 
 	// Attente d'un slot vide du buffer 'reversed_buffer'.
-	if(sem_wait(sharedData->reversed_empty) == -1){
+	if(sem_wait(shared->reversed_empty) == -1){
 		fprintf(stderr,
-				"Failed to access semaphore 'sharedData->reversed_empty' in function 'reverse_thread.c/reverse'.\n");
+				"Failed to access semaphore 'shared->reversed_empty' in function 'reverse_thread.c/reverse'.\n");
 		return ((void*) -1);}
 
 	// Blocage du buffer
-	if((errcode=pthread_mutex_lock(sharedData->reversed_buffer_mtx)) != 0){
+	if((errcode=pthread_mutex_lock(shared->reversed_buffer_mtx)) != 0){
 		fprintf(stderr,
-				"Failed to lock mutex 'sharedData->reversed_buffer_mtx in function 'reverse_thread.c/reverse'.\n");
+				"Failed to lock mutex 'shared->reversed_buffer_mtx in function 'reverse_thread.c/reverse'.\n");
 		errno = errcode;
 		return ((void*) -1);}
 
 	// On recupere l'indice du premier slot rempli dans le buffer
-	if (sem_getvalue(sharedData->hashes_full, &firstFreeIndex) == -1) {
+	if (sem_getvalue(shared->hashes_full, &first_free_index) == -1) {
 	fprintf(stderr,
-			"Failed to retrieve value from semaphore 'sharedData->reversed_empty' in function "
+			"Failed to retrieve value from semaphore 'shared->reversed_empty' in function "
 					"'reverse_thread.c/reverse'.\n");
 	return ((void *) -1);}
 
-	char Reversed[]; // On stocke en local le temps de lire la taille du String
+	char reversed[]; // On stocke en local le temps de lire la taille du String
 	// Application de la fonction.
-	if(!((int) reversehash(hash,&Reversed,sharedData->hash_length))){
+	if(!((int) reversehash(hash, &reversed, shared->hash_length))){
 		fprintf(stderr, "Failed to reverse hash in function 'reverse_thread.c/reverse'.\n");
 		return ((void *) -1);
 	}
 	free(hash);
 
-	// On cree l'espace pour le reversedHash
-	//TODO : verifier si le +1 a du sens
-	(sharedData->reversed_buffer)[firstFreeIndex] = (char[]) (malloc((strlen(Reversed)+1)*sizeof(char)));
-	if((sharedData->reversed_buffer)[firstFreeIndex] == -1){
+	// On cree l'espace pour le reversed_hash
+	//TODO : verifier si le +1 a du sens -> (Ed) Je pense que oui car strlen ne compte pas le \0
+	(shared->reversed_buffer)[first_free_index] = (char[]) (malloc((strlen(reversed)+1)*sizeof(char)));
+	if((shared->reversed_buffer)[first_free_index] == -1){
 		fprintf(stderr,
-				"Failed to allocate memory for '(sharedData->reversed_buffer)[firstFreeIndex]' "
+				"Failed to allocate memory for '(shared->reversed_buffer)[first_free_index]' "
 					"in function 'reverse_thread.c/reverse'.\n");
 		return((void *) -1);
 	}
 	//TODO : regarder la gestion des erreurs de memcpy
 	// On copie le reversed hash dans la structure partagee
-	memcpy(Reversed,
-			(sharedData->reversed_buffer)[firstFreeIndex],
-			(strlen(Reversed)+1)*sizeof(char));
+	memcpy(reversed,
+			(shared->reversed_buffer)[first_free_index],
+			(strlen(reversed)+1)*sizeof(char));
 
 	// On libere le thread
-	if ((errcode = pthread_mutex_unlock(sharedData->reversed_buffer_mtx))) {
+	if ((errcode = pthread_mutex_unlock(shared->reversed_buffer_mtx))) {
 		fprintf(stderr,
-				"Failed to unlock mutex 'sharedData->reversed_buffer_mtx' in function "
+				"Failed to unlock mutex 'shared->reversed_buffer_mtx' in function "
 						"'reverse_thread.c/reverse'.\n");
 		errno = errcode;
 		return ((void *) -1);}
 
 	// On indique qu'il y a un slot rempli en plus
-	if(sem_post(sharedData->reversed_full) == -1){
+	if(sem_post(shared->reversed_full) == -1){
 		fprintf(stderr,
-				"Failed to access semaphore 'sharedData->reversed_full' in function "
+				"Failed to access semaphore 'shared->reversed_full' in function "
 						"'reverse_thread.c/reverse'.\n");
 		return((void*)-1);
 	}

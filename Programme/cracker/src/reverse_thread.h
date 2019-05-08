@@ -9,9 +9,9 @@
 #ifndef SRC_REVERSE_THREAD_H_
 #define SRC_REVERSE_THREAD_H_
 
-//TODO: savoir s'il est necessaire de mettre cette fonction dans le header.
-//void *getHash(shared_data_t *sharedData, void *returnHash);
 
-void *reverse(shared_data_t *sharedData);
+void *get_hash(shared_data_t *shared, void *return_hash);
+
+void *reverse(shared_data_t *shared);
 
 #endif /* SRC_REVERSE_THREAD_H_ */

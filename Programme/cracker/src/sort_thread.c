@@ -27,53 +27,54 @@
 *  @return	La fonction retourne un pointeur vers un 'void*'.
 *  			La fonction retourne 0 (sous forme de 'void*') si tout s'est bien deroule, -1 sinon.
  */
-void * GetPassword(shared_data_t *sharedData, void *returnString){
-	int firstFullIndex;				// Premier indice rempli.
+void * get_password(shared_data_t *shared, void *return_string){
+	// TODO: (Ed) Pourquoi return_string est-il un void et pas juste un char**?
+	int first_full_index;				// Premier indice rempli.
 	int errcode;					// Gestion des codes erreurs.
 
 	// Attente d'un slot rempli
-	if(sem_wait(sharedData->reversed_full) == -1){
+	if(sem_wait(shared->reversed_full) == -1){
 		fprintf(stderr,
-				"Failed to access semaphore 'sharedData->reversed_full' in function 'sort_thread.c/GetPassword.\n");
+				"Failed to access semaphore 'shared->reversed_full' in function 'sort_thread.c/get_password.\n");
 		return ((void*) -1);
 	}
 
 	// Blocage du buffer
-	if((errcode=pthread_mutex_lock(sharedData->reversed_buffer_mtx)) != 0){
+	if((errcode=pthread_mutex_lock(shared->reversed_buffer_mtx)) != 0){
 		fprintf(stderr,
-				"Failed to lock mutex 'sharedData->reversed_buffer_mtx' in function 'sort_thread.c/GetPassword.\n");
+				"Failed to lock mutex 'shared->reversed_buffer_mtx' in function 'sort_thread.c/get_password.\n");
 		errno = errcode;
 		return ((void*) -1);
 	}
 
 	// Recuperation de l'indice du premier slot rempli dans le buffer
-	if(sem_getvalue(sharedData->reversed_full, &firstFullIndex) == -1){
+	if(sem_getvalue(shared->reversed_full, &first_full_index) == -1){
 		fprintf(stderr,
-				"Failed to retrieve value from semaphore 'sharedData->reversed_full' in function"
-						" 'sort_thread.c/GetPassword'.\n");
+				"Failed to retrieve value from semaphore 'shared->reversed_full' in function"
+						" 'sort_thread.c/get_password'.\n");
 		return((void*) -1);
 	}
 
 	// Copie de la valeur a recuperer et free du slot buffer
-	memcpy(returnString,
-			(sharedData->reversed_buffer)[firstFullIndex],
-			sharedData);
-	free((sharedData->hashes_buffer)[firstFullIndex]);
+	memcpy(return_string,
+			(shared->reversed_buffer)[first_full_index],
+			shared);
+	free((shared->hashes_buffer)[first_full_index]);
 
 	// Liberation du thread
-	if((errcode = pthread_mutex_unlock(sharedData->reversed_buffer_mtx))){
+	if((errcode = pthread_mutex_unlock(shared->reversed_buffer_mtx))){
 		fprintf(stderr,
-				"Failed to unlock mutex 'sharedData->reversed_buffer_mtx' in function "
-					"'sort_thread.c/GetPassword'.\n");
+				"Failed to unlock mutex 'shared->reversed_buffer_mtx' in function "
+					"'sort_thread.c/get_password'.\n");
 		errno = errcode;
 		return ((void*) -1);
 	}
 
 	// Indication du slot libre
-	if(sem_post(sharedData->reversed_empty) == -1){
+	if(sem_post(shared->reversed_empty) == -1){
 		fprintf(stderr,
-				"Failed to access semaphore 'sharedData->reverse_empty' in function "
-					"'sort_thread.c/GetPassword'.\n");
+				"Failed to access semaphore 'shared->reverse_empty' in function "
+					"'sort_thread.c/get_password'.\n");
 		return ((void*) -1);
 	}
 	// Fin de la fonction.
@@ -87,16 +88,16 @@ void * GetPassword(shared_data_t *sharedData, void *returnString){
  * @return	La fonction retourne un pointeur vers un 'void*'.
  * 			La fonction retourne le nombre de voyelles apparaissant dans le mot.
  */
-void * CountVowels(char Password[]){
+void * count_vowels(char password[]){
 	//TODO: Verifier la condition de la boucle while
 	int i = 0;
 	int count = 0;
-	while(Password[i] != '\0'){
-		if(Password[i] == 'a' || Password[i] ==  'A' ||
-				Password[i] == 'e' || Password[i] == 'E' ||
-				Password[i] == 'i' || Password[i] == 'I' ||
-				Password[i] == 'o' || Password[i] == 'O' ||
-				Password[i] == 'u' || Password[i] == 'U'){
+	while(password[i] != '\0'){
+		if(password[i] == 'a' || password[i] ==  'A' ||
+				password[i] == 'e' || password[i] == 'E' ||
+				password[i] == 'i' || password[i] == 'I' ||
+				password[i] == 'o' || password[i] == 'O' ||
+				password[i] == 'u' || password[i] == 'U'){
 			count++;
 		}
 		i++;
@@ -111,16 +112,16 @@ void * CountVowels(char Password[]){
  * @return	La fonction retourne un pointeur vers un 'void*'.
  * 			La fonction retourne le nombre de consonnes apparaissant dans le mot.
  */
-void * CountConsonants(char Password[]){
+void * count_consonants(char password[]){
 	//TODO: Verifier la condition de la boucle while et du if
 		int i = 0;
 		int count = 0;
-		while(Password[i] != '\0'){
-			if(!(Password[i] == 'a' || Password[i] ==  'A' ||
-					Password[i] == 'e' || Password[i] == 'E' ||
-					Password[i] == 'i' || Password[i] == 'I' ||
-					Password[i] == 'o' || Password[i] == 'O' ||
-					Password[i] == 'u' || Password[i] == 'U')){
+		while(password[i] != '\0'){
+			if(!(password[i] == 'a' || password[i] ==  'A' ||
+					password[i] == 'e' || password[i] == 'E' ||
+					password[i] == 'i' || password[i] == 'I' ||
+					password[i] == 'o' || password[i] == 'O' ||
+					password[i] == 'u' || password[i] == 'U')){
 				count++;
 			}
 			i++;
@@ -134,48 +135,48 @@ void * CountConsonants(char Password[]){
  * @return	La fonction retourne un pointeur vers un 'void *'.
  * 			La fonction retourne 0 si elle termine correctement, -1 sinon.
  */
-void * SortPasswords(shared_data_t * sharedData){
+void *sort_passwords(shared_data_t * shared){
 	linked_list_t candidates = (linked_list_t)(malloc(sizeof(linked_list_t)));  // liste des meilleurs candidats.
-	int maxNumber = 0; 								// nombre max de voyelle ou consonne deja trouve.
+	int max_number = 0; 								// nombre max de voyelle ou consonne deja trouve.
 	int quality; 									// nombre de voyelle ou consonne de l'element analyse.
-	char toCompare[]; 								// element analyse.
+	char to_compare[]; 								// element analyse.
 	// TODO: /!\ TROUVER LA CONDITION DE FIN DE BOUCLE
 	while(true){
 		// Recuperation d'un mot de passe
-		if(getPassword(sharedData,&toCompare) == -1){
+		if(get_password(shared, &to_compare) == -1){
 			fprintf(stderr,
-					"Failed to retrieve password in function 'sort_thread.c/SortPasswords.\n");
+					"Failed to retrieve password in function 'sort_thread.c/sort_passwords.\n");
 			return ((void*) -1);
 		}
 		//TODO: c_flag introuvable (mis dans parsing, est-ce normal?)
 		// recuperation du nombre de lettre a optimiser
-		if(sharedData->user_options->c_flag){	// Si ce sont des consonnes...
-			quality = CountConsonants(toCompare);
+		if(shared->user_options->c_flag){	// Si ce sont des consonnes...
+			quality = count_consonants(to_compare);
 		}else{									// Si ce sont des voyelles...
-			quality = CountVowels(sharedData, &toCompare);
+			quality = count_vowels(shared, &to_compare);
 		}
 
 		// Tri des mots de passe
-		if(quality> maxNumber){					// S'il est de meilleur qualite que les autres...
+		if(quality> max_number){					// S'il est de meilleur qualite que les autres...
 			remove_all(candidates);
-			add_node(candidates, &toCompare);
-			maxNumber = quality;
-		}else if(quality == maxNumber){			// S'il est de meme qualite que les autres...
-			add_node(candidates, &toCompare);
+			add_node(candidates, &to_compare);
+			max_number = quality;
+		}else if(quality == max_number){			// S'il est de meme qualite que les autres...
+			add_node(candidates, &to_compare);
 		}
 	}
 
 	//Une fois le tri termine
-	if(sharedData->user_options->o_flag){		// Si ecriture dans un fichier...
+	if(shared->user_options->o_flag){		// Si ecriture dans un fichier...
 		node_t *traveller = candidates->head;
 		int i;
 		//TODO: Quelles permissions pour les users?
 		//TODO: out_file_name introuvable (mis dans parsing, est-ce normal?)
 		// Ouverture du fichier
-		int fr = open(sharedData->user_options->out_file_name, O_WRONLY|O_CREAT|P_TRUNC,S_IRWXU);
+		int fr = open(shared->user_options->out_file_name, O_WRONLY|O_CREAT|P_TRUNC,S_IRWXU);
 		if(fr == -1){
 			fprintf(stderr,
-					"Failed to open outfile in function 'sort_thread.c/SortPasswords'.\n");
+					"Failed to open outfile in function 'sort_thread.c/sort_passwords'.\n");
 			return ((void*) -1);
 		}
 		// TODO: voir pour le \n en fin de password
@@ -183,7 +184,7 @@ void * SortPasswords(shared_data_t * sharedData){
 		while(i<=candidates->length){
 			if(write(fr,traveller->contents,(strlen(traveller->contents)+1)*sizeof(char)) != (strlen(traveller->contents)+1)*sizeof(char)){
 				fprintf(stderr,
-						"Failed to write in outfile in function 'sort_thread.c/SortPasswords'.\n");
+						"Failed to write in outfile in function 'sort_thread.c/sort_passwords'.\n");
 				close(fr);
 				return ((void*) -1);
 			}
@@ -192,7 +193,7 @@ void * SortPasswords(shared_data_t * sharedData){
 		// Fermeture du fichier
 		if(close(fr) != 0){
 			fprintf(stderr,
-					"Failed to close outfile in function 'sort_thread.c/SortPasswords'.\n");
+					"Failed to close outfile in function 'sort_thread.c/sort_passwords'.\n");
 			return ((void*) -1);
 		}
 	}else{										// Si ecriture sur la sortie standart...
