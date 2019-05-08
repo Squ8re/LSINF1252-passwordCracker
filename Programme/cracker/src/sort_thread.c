@@ -6,6 +6,9 @@
 #include <stdint.h>
 #include <errno.h>
 #include <string.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 #include "utilities.h"
 #include "init.h" 														// Utilisation de shared_data
@@ -129,6 +132,7 @@ void * CountConsonants(char Password[]){
 }
 /**
  * Cette fonction recupere les mots de passes dechiffres et gere la liste des meilleurs candidats.
+ * Une fois imprime les candidats sur la sortie choisie par 'sharedData->user_options_o_flag'.
  * @pre		La structure sharedData est correctement initialisee.
  * @post	Les elements tries sont retires des buffers correspondants
  * @return	La fonction retourne un pointeur vers un 'void *'.
@@ -172,7 +176,7 @@ void * SortPasswords(shared_data_t * sharedData){
 		//TODO: Quelles permissions pour les users?
 		//TODO: out_file_name introuvable (mis dans parsing, est-ce normal?)
 		// Ouverture du fichier
-		int fr = open(sharedData->user_options->out_file_name, O_WRONLY|O_CREAT|P_TRUNC,S_IRWXU);
+		int fr = open(sharedData->user_options->out_file_name, O_WRONLY|O_CREAT|O_TRUNC,S_IRWXU);
 		if(fr == -1){
 			fprintf(stderr,
 					"Failed to open outfile in function 'sort_thread.c/SortPasswords'.\n");
