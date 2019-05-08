@@ -53,7 +53,7 @@ void *getHash(shared_data_t *sharedData, void *returnHash){
 	// On copie la valeur a recuperer et on la supprime du buffer
 	memcpy(returnHash,
 			(sharedData->hashes_buffer)[firstFullIndex],
-			32 * sizeof(uint8_t));  // TODO: Verifier la taille du fichier a copier.
+			sharedData->hash_length * sizeof(uint8_t));
 	free((sharedData->hashes_buffer)[firstFullIndex]);
 
 	// On libere le thread
@@ -112,18 +112,34 @@ void *reverse(shared_data_t *sharedData){
 		return ((void*) -1);}
 
 	// On recupere l'indice du premier slot rempli dans le buffer
-		if (sem_getvalue(sharedData->hashes_full, &firstFreeIndex) == -1) {
-		fprintf(stderr,
-				"Failed to retrieve value from semaphore 'sharedData->reversed_empty' in function "
-						"'reverse_thread.c/reverse'.\n");
-		return ((void *) -1);}
+	if (sem_getvalue(sharedData->hashes_full, &firstFreeIndex) == -1) {
+	fprintf(stderr,
+			"Failed to retrieve value from semaphore 'sharedData->reversed_empty' in function "
+					"'reverse_thread.c/reverse'.\n");
+	return ((void *) -1);}
 
+	char Reversed[]; // On stocke en local le temps de lire la taille du String
 	// Application de la fonction.
-	if(!((int) reversehash(hash,(sharedData->reversed_buffer)[firstFreeIndex],sharedData->hash_length))){
+	if(!((int) reversehash(hash,&Reversed,sharedData->hash_length))){
 		fprintf(stderr, "Failed to reverse hash in function 'reverse_thread.c/reverse'.\n");
 		return ((void *) -1);
 	}
 	free(hash);
+
+	// On cree l'espace pour le reversedHash
+	//TODO : verifier si le +1 a du sens
+	(sharedData->reversed_buffer)[firstFreeIndex] = (char[]) (malloc((strlen(Reversed)+1)*sizeof(char)));
+	if((sharedData->reversed_buffer)[firstFreeIndex] == -1){
+		fprintf(stderr,
+				"Failed to allocate memory for '(sharedData->reversed_buffer)[firstFreeIndex]' "
+					"in function 'reverse_thread.c/reverse'.\n");
+		return((void *) -1);
+	}
+	//TODO : regarder la gestion des erreurs de memcpy
+	// On copie le reversed hash dans la structure partagee
+	memcpy(Reversed,
+			(sharedData->reversed_buffer)[firstFreeIndex],
+			(strlen(Reversed)+1)*sizeof(char));
 
 	// On libere le thread
 	if ((errcode = pthread_mutex_unlock(sharedData->reversed_buffer_mtx))) {
