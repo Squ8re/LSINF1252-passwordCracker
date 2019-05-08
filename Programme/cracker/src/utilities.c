@@ -14,6 +14,7 @@
 #include "custom_sleep.h"
 #include "parsing.h"
 #include "linked_list.h"
+#include "init.h"
 
 /*
  * Fonction qui permet de determiner si un fichier existe ou non.
