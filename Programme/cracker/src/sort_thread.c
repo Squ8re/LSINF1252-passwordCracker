@@ -131,7 +131,7 @@ void * count_consonants(char password[]){
  * @return	La fonction retourne un pointeur vers un 'void *'.
  * 			La fonction retourne 0 si elle termine correctement, -1 sinon.
  */
-void *sort_passwords(shared_data_t * shared){
+void *sort_passwords(void* shared){
 	linked_list_t candidates = (linked_list_t)(malloc(sizeof(linked_list_t)));  // liste des meilleurs candidats.
 	int max_number = 0; 							// nombre max de voyelle ou consonne deja trouve.
 	int quality; 									// nombre de voyelle ou consonne de l'element analyse.
@@ -204,7 +204,7 @@ void *sort_passwords(shared_data_t * shared){
 		printf("Here are the best candidates of the password list.\n");
 		printf("There is %d best candidates.\n",candidates->length);
 		while(i<=candidates->length){
-			printf("Candidate %04d : %s", traveller->contents); //TODO: Test le printf
+			printf("Candidate %04d : %s", traveller->contents);
 			traveller = traveller->next;
 		}
 	}

@@ -69,8 +69,6 @@ int parse_options(int argc, char **argv, options_t *user_options) {
 						return -1;
 					}
 
-					// TODO: On ne verifie pas que le fichier existe car si il n'existe pas, on pourrait vouloir le creer
-
 					strcpy(user_options->out_file_name, optarg);
 				} else {
 					// L'option "-o" a ete donnee plusieurs fois

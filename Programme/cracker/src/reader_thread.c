@@ -101,7 +101,7 @@ void *read_files(void *reader_params) {
 
 			// Attention! TODO: verifier qu'on a bien free l'eventuel hash precedent au niveau du consommateur
 			(shared->hashes_buffer)[first_free_index] = read_hash;
-
+			//TODO : a supprimer
 			printf("Added hash #%d to buffer: ", ++hash_count);
 			print_hash(stdout, read_hash, shared->hash_length);
 			printf("\n            Buffer view: ");

@@ -71,8 +71,6 @@ int create_buffers(shared_data_t *shared) {
 	//       initialiser les espaces qui contiendront les hashes, on ne peut pas faire de meme avec
 	//       reversed_buffer, car on ne sait pas encore la taille qu'auront les char * representant les
 	//       mots de passe en clair.
-	// TODO: Il faudra faire attention, quand on initialise ces espaces dans 'reversed_buffer', a tenir
-	//       compte du '\0' dans le malloc.
 
 	return 0;
 }
@@ -134,9 +132,8 @@ int launch_threads(shared_data_t *shared) {
 
 	// Lancement des threads d'inversion des hashes
 	for (int i = 0; i < shared->user_options->n_threads; i++) {
-		// TODO: Remplacer le dernier "NULL" par l'argument des threads consommateurs
 		if ((errcode = pthread_create(&(shared->threads_data->reversers)[i],
-				NULL, shared->threads_data->reverse_func, NULL)) != 0) {
+				NULL, shared->threads_data->reverse_func, (void*) shared)) != 0) {
 			free(shared->threads_data->reader);
 			free(shared->threads_data->reversers);
 			free(shared->threads_data->cand_manager);
@@ -149,9 +146,8 @@ int launch_threads(shared_data_t *shared) {
 	}
 
 	// Lancement du thread 'cand_manager', gerant les "meilleurs candidats"
-	// TODO: Remplacer le dernier "NULL" par l'argument du thread cand_manager
 	if ((errcode = pthread_create(shared->threads_data->cand_manager, NULL,
-			shared->threads_data->cand_func, NULL)) != 0) {
+			shared->threads_data->cand_func, (void*) shared)) != 0) {
 		free(shared->threads_data->reader);
 		free(shared->threads_data->reversers);
 		free(shared->threads_data->cand_manager);
