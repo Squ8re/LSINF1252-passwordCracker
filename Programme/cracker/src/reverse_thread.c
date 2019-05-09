@@ -15,7 +15,8 @@
  * La fonction a appeler pour lancer l'operation est 'reverse'.
  *
  *  Created on: 14 avr. 2019
- *      Author: amade
+ *      Author: Amadeo DAVID
+ *      NOMA  : 4476 1700
  */
 
 /*

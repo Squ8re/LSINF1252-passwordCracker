@@ -15,7 +15,8 @@
  * Ce fichier contient toutes les fonctions relatives aux threads de tri.
  *
  *  Created on: 14 avr. 2019
- *      Author: amade
+ *      Author: Amadeo DAVID
+ *      Noma  : 4476 1700
  */
 
 /*

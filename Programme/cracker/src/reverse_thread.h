@@ -3,7 +3,8 @@
  * reverse_thread.h
  *
  *  Created on: 24 avr. 2019
- *      Author: amade
+ *      Author: Amadeo DAVID
+ *      NOMA  : 4476 1700
  */
 
 #ifndef SRC_REVERSE_THREAD_H_

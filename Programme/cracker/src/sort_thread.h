@@ -2,7 +2,8 @@
  * sort.h
  *
  *  Created on: 2 mai 2019
- *      Author: amade
+ *      Author: Amadeo DAVID
+ *      NOMA  : 4476 1700
  */
 
 #ifndef SRC_SORT_THREAD_H_
