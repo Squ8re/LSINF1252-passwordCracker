@@ -106,8 +106,8 @@ int main(int argc, char **argv) {
 
 	// Terminaison des threads
 	int errcode;
-	int errcode_from_thread;  // Signal d'erreur retourne par le thread (et pas par pthread_join)
-	if ((errcode = pthread_join(*(shared->threads_data->reader), errcode_from_thread)) != 0) {
+	int *errcode_from_thread;  // Signal d'erreur retourne par le thread (et pas par pthread_join)
+	if ((errcode = pthread_join(*(shared->threads_data->reader), (void **) &errcode_from_thread)) != 0) {
 		fprintf(stderr,
 				"Failed to join thread 'reader' in function 'main.c/main' (errno=%d : %s).\n",
 				errcode, strerror(errcode));
@@ -116,13 +116,13 @@ int main(int argc, char **argv) {
 	}
 
 	// Verifier que le thread s'est execute correctement:
-	if(errcode_from_thread == -1){
-		fprintf("Failed to run thread 'reader' in function 'main.c/main' (errno=%d : %s).\n", errno, strerror(errno));
+	if(*errcode_from_thread == -1){
+		fprintf(stderr, "Failed to run thread 'reader' in function 'main.c/main' (errno=%d : %s).\n", errno, strerror(errno));
 		return EXIT_FAILURE;
 	}
 
 	for (int i = 0; i < user_options->n_threads; i++) {
-		if ((errcode = pthread_join((shared->threads_data->reversers)[i], errcode_from_thread))
+		if ((errcode = pthread_join((shared->threads_data->reversers)[i], (void **) &errcode_from_thread))
 				!= 0) {
 			fprintf(stderr,
 					"Failed to join thread 'reversers[%d]' in function 'main.c/main' "
@@ -130,13 +130,13 @@ int main(int argc, char **argv) {
 		}
 
 		// Verifier que le thread s'est execute correctement:
-		if(errcode_from_thread == -1){
-			fprintf("Failed to run thread 'reverser' in function 'main.c/main' (errno=%d : %s).\n", errno, strerror(errno));
+		if(*errcode_from_thread == -1){
+			fprintf(stderr, "Failed to run thread 'reverser' in function 'main.c/main' (errno=%d : %s).\n", errno, strerror(errno));
 			return EXIT_FAILURE;
 		}
 	}
 
-	if ((errcode = pthread_join(*(shared->threads_data->cand_manager), NULL))
+	if ((errcode = pthread_join(*(shared->threads_data->cand_manager), (void **) &errcode_from_thread))
 			!= 0) {
 		fprintf(stderr,
 				"Failed to join thread 'cand_manager' in function 'main.c/main' (errno=%d : %s).\n",
@@ -146,8 +146,8 @@ int main(int argc, char **argv) {
 	}
 
 	// Verifier que le thread s'est execute correctement:
-	if(errcode_from_thread == -1){
-		fprintf("Failed to run thread 'cand_manager' in function 'main.c/main' (errno=%d : %s).\n", errno, strerror(errno));
+	if(*errcode_from_thread == -1){
+		fprintf(stderr, "Failed to run thread 'cand_manager' in function 'main.c/main' (errno=%d : %s).\n", errno, strerror(errno));
 		return EXIT_FAILURE;
 	}
 

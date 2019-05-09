@@ -12,6 +12,6 @@
 
 void *get_hash(shared_data_t *shared, void *return_hash);
 
-void *reverse(shared_data_t *shared);
+void *reverse(void *shared);
 
 #endif /* SRC_REVERSE_THREAD_H_ */

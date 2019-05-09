@@ -27,7 +27,7 @@
 *  @return	La fonction retourne un pointeur vers un 'void*'.
 *  			La fonction retourne 0 (sous forme de 'void*') si tout s'est bien deroule, -1 sinon.
  */
-char ** get_password(shared_data_t *shared, void *return_string){
+char **get_password(shared_data_t *shared, void *return_string){
 	int first_full_index;				// Premier indice rempli.
 	int errcode;					// Gestion des codes erreurs.
 

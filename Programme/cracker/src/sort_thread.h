@@ -9,13 +9,13 @@
 #define SRC_SORT_THREAD_H_
 
 
-void * get_password(shared_data_t *shared, void *return_string);
+void **get_password(shared_data_t *shared, void *return_string);
 
 void * count_vowels(char password[]);
 
 void * count_consonants(char password[]);
 
-void * sort_passwords(shared_data_t * shared);
+void * sort_passwords(void *shared);
 
 
 #endif /* SRC_SORT_THREAD_H_ */
