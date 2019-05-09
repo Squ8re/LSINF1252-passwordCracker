@@ -22,3 +22,6 @@ amadavid@studssh.info.ucl.ac.be:/etinfo/users/2019/amadavid/Documents/Q4/LSINF12
 
 Pour transférer des fichiers sans écraser ceux-déjà présent mais en rajoutant uniquement les différences sur le répertoire distant :
 rsync -avz -e 'ssh' /path/to/local/dir user@remotehost:/path/to/remote/dir
+
+Pour copier simplement des fichier :
+ scp -r ./Programme amadavid@studssh.info.ucl.ac.be:/etinfo/users/2019/amadavid/
