@@ -1,7 +1,17 @@
 all: cracker
 
 cracker: custom_sleep.o main.o init.o linked_list.o parsing.o reader_thread.o reverse_thread.o reverse.o sha256.o sort_thread.o utilities.o
-	gcc -o cracker -Wall -Werror -pthread ./src/custom_sleep.o
+	gcc -o cracker -Wall -Werror -pthread custom_sleep.o
+	gcc -o cracker -Wall -Werror -pthread main.o
+	gcc -o cracker -Wall -Werror -pthread init.o
+	gcc -o cracker -Wall -Werror -pthread linked_list.o
+	gcc -o cracker -Wall -Werror -pthread parsing.o
+	gcc -o cracker -Wall -Werror -pthread reader_thread.o
+	gcc -o cracker -Wall -Werror -pthread reverse_thread.o
+	gcc -o cracker -Wall -Werror -pthread reverse.o
+	gcc -o cracker -Wall -Werror -pthread sha256.o
+	gcc -o cracker -Wall -Werror -pthread sort_thread.o
+	gcc -o cracker -Wall -Werror -pthread utilities.o
 
 custom_sleep.o: ./src/custom_sleep.c ./src/custom_sleep.h ./src/utilities.h
 	cc -c -Wall -Werror ./src/custom_sleep.c
