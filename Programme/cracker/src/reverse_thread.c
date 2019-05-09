@@ -102,7 +102,7 @@ int get_hash(shared_data_t *shared, uint8_t **return_hash){
  * 			retourne 0 en cas de reussite
  * 			retour un autre chiffre (int) en cas d'erreur.
  */
-void *reverse(shared_data_t *shared){
+void *reverse(void *reverse_params){
 	shared_data_t *shared = (shared_data_t *) (reverse_params);
 	int first_free_index = -1; 		// premier indice rempli
 	int errcode;					// gestion des codes erreurs
