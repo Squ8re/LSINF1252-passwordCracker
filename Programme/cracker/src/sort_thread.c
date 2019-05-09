@@ -27,8 +27,7 @@
 *  @return	La fonction retourne un pointeur vers un 'void*'.
 *  			La fonction retourne 0 (sous forme de 'void*') si tout s'est bien deroule, -1 sinon.
  */
-void * get_password(shared_data_t *shared, void *return_string){
-	// TODO: (Ed) Pourquoi return_string est-il un void et pas juste un char**?
+char ** get_password(shared_data_t *shared, void *return_string){
 	int first_full_index;				// Premier indice rempli.
 	int errcode;					// Gestion des codes erreurs.
 
@@ -48,14 +47,13 @@ void * get_password(shared_data_t *shared, void *return_string){
 	}
 
 	// Recuperation de l'indice du premier slot rempli dans le buffer
-	// TODO: meme commentaire que dans reverse_thread: je pense que la on check le premier slot libre et aussi
-	// il faut s'assurer qu'il y *a* un slot rempli (aka. le buffer n'est-il pas vide?)
 	if(sem_getvalue(shared->reversed_full, &first_full_index) == -1){
 		fprintf(stderr,
 				"Failed to retrieve value from semaphore 'shared->reversed_full' in function"
 						" 'sort_thread.c/get_password'.\n");
 		return((void*) -1);
 	}
+	first_full_index--;
 
 	// Copie de la valeur a recuperer et free du slot buffer
 	memcpy(return_string,
@@ -91,10 +89,9 @@ void * get_password(shared_data_t *shared, void *return_string){
  * 			La fonction retourne le nombre de voyelles apparaissant dans le mot.
  */
 void * count_vowels(char password[]){
-	//TODO: Verifier la condition de la boucle while
-	int i = 0;
+	int i;
 	int count = 0;
-	while(password[i] != '\0'){
+	for(i=1; i<strlen(password); i++){
 		if(password[i] == 'a' || password[i] ==  'A' ||
 				password[i] == 'e' || password[i] == 'E' ||
 				password[i] == 'i' || password[i] == 'I' ||
@@ -102,7 +99,6 @@ void * count_vowels(char password[]){
 				password[i] == 'u' || password[i] == 'U'){
 			count++;
 		}
-		i++;
 	}
 	return ((void *) count);
 }
@@ -115,20 +111,18 @@ void * count_vowels(char password[]){
  * 			La fonction retourne le nombre de consonnes apparaissant dans le mot.
  */
 void * count_consonants(char password[]){
-	//TODO: Verifier la condition de la boucle while et du if
-		int i = 0;
-		int count = 0;
-		while(password[i] != '\0'){
-			if(!(password[i] == 'a' || password[i] ==  'A' ||
-					password[i] == 'e' || password[i] == 'E' ||
-					password[i] == 'i' || password[i] == 'I' ||
-					password[i] == 'o' || password[i] == 'O' ||
-					password[i] == 'u' || password[i] == 'U')){
-				count++;
-			}
-			i++;
+	int i;
+	int count = 0;
+	for(i=1; i<strlen(password); i++){
+		if(!(password[i] == 'a' || password[i] ==  'A' ||
+				password[i] == 'e' || password[i] == 'E' ||
+				password[i] == 'i' || password[i] == 'I' ||
+				password[i] == 'o' || password[i] == 'O' ||
+				password[i] == 'u' || password[i] == 'U')){
+			count++;
 		}
-		return ((void *) count);
+	}
+	return ((void *) count);
 }
 /**
  * Cette fonction recupere les mots de passes dechiffres et gere la liste des meilleurs candidats.
@@ -139,18 +133,19 @@ void * count_consonants(char password[]){
  */
 void *sort_passwords(shared_data_t * shared){
 	linked_list_t candidates = (linked_list_t)(malloc(sizeof(linked_list_t)));  // liste des meilleurs candidats.
-	int max_number = 0; 								// nombre max de voyelle ou consonne deja trouve.
+	int max_number = 0; 							// nombre max de voyelle ou consonne deja trouve.
 	int quality; 									// nombre de voyelle ou consonne de l'element analyse.
 	char to_compare[]; 								// element analyse.
-	// TODO: /!\ TROUVER LA CONDITION DE FIN DE BOUCLE
-	while(true){
+
+	// Tant que tous les fichiers n'ont pas ete reverse, on trie les mots de passe.
+	while(shared->all_files_reversed){
 		// Recuperation d'un mot de passe
 		if(get_password(shared, &to_compare) == -1){
 			fprintf(stderr,
 					"Failed to retrieve password in function 'sort_thread.c/sort_passwords.\n");
 			return ((void*) -1);
 		}
-		//TODO: c_flag introuvable (mis dans parsing, est-ce normal?)
+
 		// recuperation du nombre de lettre a optimiser
 		if(shared->user_options->c_flag){	// Si ce sont des consonnes...
 			quality = count_consonants(to_compare);
@@ -172,8 +167,7 @@ void *sort_passwords(shared_data_t * shared){
 	if(shared->user_options->o_flag){		// Si ecriture dans un fichier...
 		node_t *traveller = candidates->head;
 		int i;
-		//TODO: Quelles permissions pour les users?
-		//TODO: out_file_name introuvable (mis dans parsing, est-ce normal?)
+
 		// Ouverture du fichier
 		int fr = open(shared->user_options->out_file_name, O_WRONLY|O_CREAT|P_TRUNC,S_IRWXU);
 		if(fr == -1){
@@ -181,13 +175,19 @@ void *sort_passwords(shared_data_t * shared){
 					"Failed to open outfile in function 'sort_thread.c/sort_passwords'.\n");
 			return ((void*) -1);
 		}
-		// TODO: voir pour le \n en fin de password
+
 		// Ecriture du fichier
 		while(i<=candidates->length){
 			if(write(fr,traveller->contents,(strlen(traveller->contents)+1)*sizeof(char)) != (strlen(traveller->contents)+1)*sizeof(char)){
 				fprintf(stderr,
 						"Failed to write in outfile in function 'sort_thread.c/sort_passwords'.\n");
 				close(fr);
+				return ((void*) -1);
+			}
+			if(write(fr,"\n",sizeof(char)) != sizeof(char)){
+				fprintf(stderr,
+						"Failed to write in outfile in function 'sort_thread.c/sort_passowrds'.\n");
+				close(fr)
 				return ((void*) -1);
 			}
 		}

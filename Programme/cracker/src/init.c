@@ -176,7 +176,8 @@ int launch_threads(shared_data_t *shared) {
  *
  */
 int create_coordinators(shared_data_t *shared) {
-	shared->all_files_read = false;
+	shared->all_files_read	   = false;
+	shared->all_files_reversed = false;
 	// Pas besoin de mutex pour all_files_read car seul le thread de lecture va le modifier
 	// Il faudra mettre un mutex si on utilise plusieurs threads de lecture (et encore, pas sur...)
 

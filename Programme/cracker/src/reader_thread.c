@@ -35,8 +35,6 @@
  *       affiche un message d'erreur sur stderr.
  *
  */
-
-// Attention: on retourne un int caste en void * (pas besoin de faire un int* btw)
 void *read_files(void *reader_params) {
 	// Recuperation des parametres sous un type adequat
 	shared_data_t *shared = (shared_data_t *) reader_params;
