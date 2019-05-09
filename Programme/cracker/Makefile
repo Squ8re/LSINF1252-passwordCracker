@@ -14,7 +14,7 @@ cracker: custom_sleep.o main.o init.o linked_list.o parsing.o reader_thread.o re
 	gcc -o cracker -Wall -Werror -pthread utilities.o
 
 custom_sleep.o: ./src/custom_sleep.c ./src/custom_sleep.h ./src/utilities.h
-	cc -c -Wall -Werror ./src/custom_sleep.c
+	gcc -c -Wall -Werror ./src/custom_sleep.c
 main.o: ./src/main.c ./src/parsing.h ./src/utilities.h ./src/init.h ./src/reader_thread.h ./src/reverse_thread.h ./src/sort_thread.h
 	gcc -c -Wall -Werror -pthread ./src/main.c
 init.o: ./src/init.c ./src/init.h ./src/parsing.h ./src/linked_list.h ./src/utilities.h ./src/parsing.h ./src/init.h
