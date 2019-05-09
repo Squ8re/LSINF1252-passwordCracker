@@ -136,6 +136,7 @@ int count_consonants(char *password){
  * 			La fonction retourne 0 si elle termine correctement, -1 sinon.
  */
 void *sort_passwords(void* sort_params){
+	//return ((void *) 0);  // TODO: backme
 	shared_data_t *shared = (shared_data_t *) (sort_params);
 	linked_list_t *candidates = (linked_list_t *) (malloc(sizeof(linked_list_t)));  // liste des meilleurs candidats.
 	init_linked_list(candidates);
@@ -144,7 +145,7 @@ void *sort_passwords(void* sort_params){
 	char *to_compare; 								// element analyse.
 
 	// Tant que tous les fichiers n'ont pas ete reverse, on trie les mots de passe.
-	while(shared->all_files_reversed){
+	while(!(shared->all_files_reversed)){
 		// Recuperation d'un mot de passe
 		if(get_password(shared, &to_compare) == -1){
 			fprintf(stderr,

@@ -120,6 +120,7 @@ void *read_files(void *reader_params) {
 			}
 
 			// On prend note qu'un slot supplementaire du buffer est occupe
+
 			if (sem_post(shared->hashes_full) == -1) {
 				free(read_hash);
 				fprintf(stderr,

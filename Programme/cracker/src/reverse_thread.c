@@ -33,6 +33,7 @@ int get_hash(shared_data_t *shared, uint8_t **return_hash){
 	int first_full_index; 			// premier indice rempli
 	int errcode;					// gestion des codes erreurs
 	// Attente d'un slot rempli
+
 	if(sem_wait(shared->hashes_full) == -1){
 		fprintf(stderr,
 				"Failed to access semaphore 'shared->hashes_full' in function 'reverse_thread.c/get_hash'.\n");
@@ -47,19 +48,12 @@ int get_hash(shared_data_t *shared, uint8_t **return_hash){
 		return -1;
 	}
 
-	int empty = 1;
-	while(empty == 1){
-		// On recupere l'indice du premier slot rempli dans le buffer
-		if (sem_getvalue(shared->hashes_full, &first_full_index) == -1) {
-			fprintf(stderr,
-					"Failed to retrieve value from semaphore 'shared->hashes_full' in function "
-							"'reverse_thread.c/get_hash'.\n");
-			return -1;
-		}
-		first_full_index--;
-		if(first_full_index < 0){
-
-		}
+	// On recupere l'indice du premier slot rempli dans le buffer
+	if (sem_getvalue(shared->hashes_full, &first_full_index) == -1) {
+		fprintf(stderr,
+				"Failed to retrieve value from semaphore 'shared->hashes_full' in function "
+						"'reverse_thread.c/get_hash'.\n");
+		return -1;
 	}
 
 	// On copie la valeur a recuperer et on la supprime du buffer
@@ -107,7 +101,12 @@ void *reverse(void *reverse_params){
 	int first_free_index = -1; 		// premier indice rempli
 	int errcode;					// gestion des codes erreurs
 
+	int hash_count = 0; // TODO: A retirer: ceci sert pour le print!
+
 	while(!(shared->all_files_read && first_free_index == 0)){
+		printf("LES FICHIERS READ: %d\n", shared->all_files_read);  // TODO: viremoi
+		fflush(stdout);
+		// printf("MDR\ntatankwa\n?");  // TODO: viremoi
 		// Recuperation d'un hash.
 		uint8_t *hash = (uint8_t *)(malloc(shared->hash_length * sizeof(uint8_t)));
 		if(!hash){
@@ -118,6 +117,13 @@ void *reverse(void *reverse_params){
 			fprintf(stderr,
 					"Failed to retrieve hash from 'shared->hashes_buffer' in function 'reverse_thread.c/reverse'.\n");
 		}
+
+		///////////// TODO: a retirer /////////////////
+		printf("hashnull: %d", hash == NULL); // TODO: viremoi
+		printf("Retrieved hash #%d from buffer: ", ++hash_count);
+		//print_hash(stdout, hash, shared->hash_length);
+		printf("\n");
+		///////////////////////////////////////////////
 
 		// Attente d'un slot vide du buffer 'reversed_buffer'.
 		if(sem_wait(shared->reversed_empty) == -1){
@@ -176,6 +182,7 @@ void *reverse(void *reverse_params){
 			return((void*)-1);
 		}
 	}
+	printf("SORTI DE LA WHILE\n");  // TODO: viremoi
 	// On termine la fonction.
 	return((void*) 0);
 }
