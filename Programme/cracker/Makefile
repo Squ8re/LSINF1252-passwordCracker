@@ -3,6 +3,9 @@ all: cracker
 cracker: custom_sleep.o main.o init.o linked_list.o parsing.o reader_thread.o reverse_thread.o reverse.o sha256.o sort_thread.o utilities.o
 	gcc -o cracker -Wall -Werror -pthread main.o custom_sleep.o init.o linked_list.o parsing.o reader_thread.o reverse_thread.o reverse.o sha256.o sort_thread.o utilities.o
 
+valgrind: custom_sleep.o main.o init.o linked_list.o parsing.o reader_thread.o reverse_thread.o reverse.o sha256.o sort_thread.o utilities.o
+	gcc -o cracker -Wall -Werror -pthread -g -o0 main.o custom_sleep.o init.o linked_list.o parsing.o reader_thread.o reverse_thread.o reverse.o sha256.o sort_thread.o utilities.o
+
 custom_sleep.o: ./src/custom_sleep.c ./src/custom_sleep.h ./src/utilities.h
 	gcc -c -Wall -Werror ./src/custom_sleep.c
 main.o: ./src/main.c ./src/parsing.h ./src/utilities.h ./src/init.h ./src/reader_thread.h ./src/reverse_thread.h ./src/sort_thread.h
