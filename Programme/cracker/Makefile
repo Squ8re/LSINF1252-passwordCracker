@@ -2,7 +2,7 @@ cracker : main.o custom_sleep.o init.o linked_list.o parsing.o reader_thread.o\
 		 reverse_thread.o reverse.o sha256.o sort_thread.o utilities.o
 		gcc -o cracker -Wall -Werror -pthread .\src\*.o
 
-main.o : main.c 										#parsing.h utilities.h init.h reader_thread.h reverse_thread.h sort_thread.h
+main.o : main.c main.h									#parsing.h utilities.h init.h reader_thread.h reverse_thread.h sort_thread.h
 		gcc -c -Wall -Werror -pthread .\src\main.c
 custom_sleep.o : custom_sleep.c custom_sleep.h 			#utilities.h
 		gcc -c -Wall -Werror .\src\custom_sleep.c
