@@ -1,5 +1,12 @@
 // Fichier reprenant les fonctions relatives a la lecture des fichiers par le thread de lecture
 
+/*
+ *
+ * Author: Eduardo Vannini (NOMA: 10301700)
+ *          Date: 09-05-2019
+ *
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
@@ -24,7 +31,8 @@
  *      les valeurs relatives aux parametres entres par l'utilisateur et celles relatives aux buffers).
  * @post Si aucune erreur ne se produit, 'reader_params->all_files_read' est mis a true, les fichiers sont
  *       fermes correctement et l'ensemble des hashes a ete lu et la fonction retourne ((void *) 0). Sinon,
- *       la fonction retourne ((void *) -1) et affiche un message d'erreur sur stderr.
+ *       la fonction retourne ((void *) -1), met errno a une valeur correspondant a l'erreur rencontree et
+ *       affiche un message d'erreur sur stderr.
  *
  */
 

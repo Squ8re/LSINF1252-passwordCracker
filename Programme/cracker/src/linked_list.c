@@ -1,5 +1,12 @@
 // Fichier contenant du code pour la gestion d'une liste chainee
 
+/*
+ *
+ * Author: Eduardo Vannini (NOMA: 10301700)
+ *          Date: 09-05-2019
+ *
+ */
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>

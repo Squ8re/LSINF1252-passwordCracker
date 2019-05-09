@@ -1,5 +1,12 @@
 // Fichier contenant du code utile a l'initialisation du programme faite dans main
 
+/*
+ *
+ * Author: Eduardo Vannini (NOMA: 10301700)
+ *          Date: 09-05-2019
+ *
+ */
+
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>

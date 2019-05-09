@@ -1,5 +1,12 @@
 // Fichier qui permet d'avoir une meme fonction de "delay" pour plusieurs OS
 
+/*
+ *
+ * Author: Eduardo Vannini (NOMA: 10301700)
+ *          Date: 09-05-2019
+ *
+ */
+
 #include "utilities.h"
 #include "custom_sleep.h"
 

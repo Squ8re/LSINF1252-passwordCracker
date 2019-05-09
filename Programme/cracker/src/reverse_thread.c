@@ -44,12 +44,18 @@ void *get_hash(shared_data_t *shared, uint8_t **return_hash){
 		errno = errcode;
 		return ((void*) -1);}
 
+	// TODO: (Ed): J'ai rajouter un "--" parce que tu as pris l'indice du premier slot libre (copy-paste de reader_thread) et pas du premier
+	// slot rempli (il me semble, je peux me tromper...)
+
 	// On recupere l'indice du premier slot rempli dans le buffer
 	if (sem_getvalue(shared->hashes_full, &first_full_index) == -1) {
 		fprintf(stderr,
 				"Failed to retrieve value from semaphore 'shared->hashes_full' in function "
 						"'reverse_thread.c/get_hash'.\n");
 		return ((void *) -1);}
+
+	first_full_index--;  // TODO: la modif que j'ai fait. (pas sur que ce soit correct though)
+	// TODO: Comment on fait si first_full_index est < 0? (aka le buffer est vide)
 
 	// On copie la valeur a recuperer et on la supprime du buffer
 	memcpy(return_hash,
@@ -89,12 +95,17 @@ void *reverse(shared_data_t *shared){
 	int first_free_index; 			// premier indice rempli
 	int errcode;					// gestion des codes erreurs
 	// Recuperation d'un hash.
-	uint8_t* hash[] = (uint8_t *)(malloc(shared->hash_length * sizeof(uint8_t)));
-	if(hash==-1){
+
+	uint8_t *hash = (uint8_t *)(malloc(shared->hash_length * sizeof(uint8_t)));
+	if(!hash){
 		fprintf(stderr, "Failed to allocate memory for 'hash' in function 'reverse_thread.c/reverse'.\n");
 		return ((void*) -1);
 	}
-	if(get_hash(shared, hash) != 0){
+
+	// TODO: Ici, comment on s'assure qu'il y a un hash actuellement disponible?
+	// Sinon on peut aussi gerer ca dans get_hash
+	// TODO: comme on recupere le 'first_free_index' plusieurs fois, go fair eune fonction? (pas oblige hn)
+	if(get_hash(shared, &hash) != 0){
 		fprintf(stderr,
 				"Failed to retrieve hash from 'shared->hashes_buffer' in function 'reverse_thread.c/reverse'.\n");
 	}
@@ -113,14 +124,17 @@ void *reverse(shared_data_t *shared){
 		return ((void*) -1);}
 
 	// On recupere l'indice du premier slot rempli dans le buffer
+	// TODO: Meme reflexion que dans get_hash: ici je pens eque tu recuperes le premier slot vide.
 	if (sem_getvalue(shared->hashes_full, &first_free_index) == -1) {
 	fprintf(stderr,
 			"Failed to retrieve value from semaphore 'shared->reversed_empty' in function "
 					"'reverse_thread.c/reverse'.\n");
 	return ((void *) -1);}
 
-	char reversed[]; // On stocke en local le temps de lire la taille du String
+	char *reversed; // On stocke en local le temps de lire la taille du String
 	// Application de la fonction.
+
+	// TODO: pourquoi le cast (int)? (ca marche hn mais bon je pense pas que ce soit utile)
 	if(!((int) reversehash(hash, &reversed, shared->hash_length))){
 		fprintf(stderr, "Failed to reverse hash in function 'reverse_thread.c/reverse'.\n");
 		return ((void *) -1);

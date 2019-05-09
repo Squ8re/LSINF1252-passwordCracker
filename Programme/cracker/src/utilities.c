@@ -1,5 +1,12 @@
 // Fichier qui regroupe diverses fonctions utilitaires
 
+/*
+ *
+ * Author: Eduardo Vannini (NOMA: 10301700)
+ *          Date: 09-05-2019
+ *
+ */
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
