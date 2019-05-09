@@ -1,5 +1,12 @@
 // Fichier qui regroupe le code utile a la lecture des options donnees en ligne de commande par l'utilisateur
 
+/*
+ *
+ * Author: Eduardo Vannini (NOMA: 10301700)
+ *          Date: 09-05-2019
+ *
+ */
+
 #ifndef PARSING_HEADER
 #define PARSING_HEADER
 

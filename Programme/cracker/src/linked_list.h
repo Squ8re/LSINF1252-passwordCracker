@@ -1,5 +1,12 @@
 // Fichier contenant du code pour la gestion d'une liste chainee
 
+/*
+ *
+ * Author: Eduardo Vannini (NOMA: 10301700)
+ *          Date: 09-05-2019
+ *
+ */
+
 #ifndef LINKED_LIST_HEADER
 #define LINKED_LIST_HEADER
 

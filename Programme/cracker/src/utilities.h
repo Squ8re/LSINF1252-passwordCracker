@@ -1,5 +1,12 @@
 // Fichier regroupant divers utilitaires
 
+/*
+ *
+ * Author: Eduardo Vannini (NOMA: 10301700)
+ *          Date: 09-05-2019
+ *
+ */
+
 #ifndef UTILITIES_HEADER
 #define UTILITIES_HEADER
 

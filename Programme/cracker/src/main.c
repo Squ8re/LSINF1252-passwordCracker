@@ -1,3 +1,12 @@
+// Fichier contenant la fonction principale du programme (main)
+
+/*
+ *
+ * Author: Eduardo Vannini (NOMA: 10301700)
+ *          Date: 09-05-2019
+ *
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -85,7 +94,7 @@ int main(int argc, char **argv) {
 
 	shared->threads_data->read_func = &read_files;
 	shared->threads_data->reverse_func = &reverse;
-	shared->threads_data->cand_func = &sort_passwords; // TODO: A modifier
+	shared->threads_data->cand_func = &sort_passwords;
 
 	if (launch_threads(shared) == -1) {
 		fprintf(stderr,
@@ -96,9 +105,9 @@ int main(int argc, char **argv) {
 	}
 
 	// Terminaison des threads
-	// TODO: Il faudra remplacer les "NULL" pour gerer les erreurs
 	int errcode;
-	if ((errcode = pthread_join(*(shared->threads_data->reader), NULL)) != 0) {
+	int errcode_from_thread;  // Signal d'erreur retourne par le thread (et pas par pthread_join)
+	if ((errcode = pthread_join(*(shared->threads_data->reader), errcode_from_thread)) != 0) {
 		fprintf(stderr,
 				"Failed to join thread 'reader' in function 'main.c/main' (errno=%d : %s).\n",
 				errcode, strerror(errcode));
@@ -106,12 +115,24 @@ int main(int argc, char **argv) {
 		return EXIT_FAILURE;
 	}
 
+	// Verifier que le thread s'est execute correctement:
+	if(errcode_from_thread == -1){
+		fprintf("Failed to run thread 'reader' in function 'main.c/main' (errno=%d : %s).\n", errno, strerror(errno));
+		return EXIT_FAILURE;
+	}
+
 	for (int i = 0; i < user_options->n_threads; i++) {
-		if ((errcode = pthread_join((shared->threads_data->reversers)[i], NULL))
+		if ((errcode = pthread_join((shared->threads_data->reversers)[i], errcode_from_thread))
 				!= 0) {
 			fprintf(stderr,
 					"Failed to join thread 'reversers[%d]' in function 'main.c/main' "
 							"(errno=%d : %s)", i, errcode, strerror(errcode));
+		}
+
+		// Verifier que le thread s'est execute correctement:
+		if(errcode_from_thread == -1){
+			fprintf("Failed to run thread 'reverser' in function 'main.c/main' (errno=%d : %s).\n", errno, strerror(errno));
+			return EXIT_FAILURE;
 		}
 	}
 
@@ -121,6 +142,12 @@ int main(int argc, char **argv) {
 				"Failed to join thread 'cand_manager' in function 'main.c/main' (errno=%d : %s).\n",
 				errcode, strerror(errcode));
 		free_all(shared);
+		return EXIT_FAILURE;
+	}
+
+	// Verifier que le thread s'est execute correctement:
+	if(errcode_from_thread == -1){
+		fprintf("Failed to run thread 'cand_manager' in function 'main.c/main' (errno=%d : %s).\n", errno, strerror(errno));
 		return EXIT_FAILURE;
 	}
 
