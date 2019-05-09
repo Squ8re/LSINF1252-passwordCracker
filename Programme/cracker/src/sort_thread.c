@@ -6,6 +6,10 @@
 #include <stdint.h>
 #include <errno.h>
 #include <string.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
 
 #include "utilities.h"
 #include "init.h" 														// Utilisation de shared_data
@@ -28,7 +32,7 @@
 *  @return	La fonction retourne un pointeur vers un 'void*'.
 *  			La fonction retourne 0 (sous forme de 'void*') si tout s'est bien deroule, -1 sinon.
  */
-char **get_password(shared_data_t *shared, void *return_string){
+int get_password(shared_data_t *shared, void *return_string){
 	int first_full_index;				// Premier indice rempli.
 	int errcode;					// Gestion des codes erreurs.
 
@@ -36,7 +40,7 @@ char **get_password(shared_data_t *shared, void *return_string){
 	if(sem_wait(shared->reversed_full) == -1){
 		fprintf(stderr,
 				"Failed to access semaphore 'shared->reversed_full' in function 'sort_thread.c/get_password.\n");
-		return ((void*) -1);
+		return -1;
 	}
 
 	// Blocage du buffer
@@ -44,7 +48,7 @@ char **get_password(shared_data_t *shared, void *return_string){
 		fprintf(stderr,
 				"Failed to lock mutex 'shared->reversed_buffer_mtx' in function 'sort_thread.c/get_password.\n");
 		errno = errcode;
-		return ((void*) -1);
+		return -1;
 	}
 
 	// Recuperation de l'indice du premier slot rempli dans le buffer
@@ -52,7 +56,7 @@ char **get_password(shared_data_t *shared, void *return_string){
 		fprintf(stderr,
 				"Failed to retrieve value from semaphore 'shared->reversed_full' in function"
 						" 'sort_thread.c/get_password'.\n");
-		return((void*) -1);
+		return -1;
 	}
 	first_full_index--;
 
@@ -67,7 +71,7 @@ char **get_password(shared_data_t *shared, void *return_string){
 				"Failed to unlock mutex 'shared->reversed_buffer_mtx' in function "
 					"'sort_thread.c/get_password'.\n");
 		errno = errcode;
-		return ((void*) -1);
+		return -1;
 	}
 
 	// Indication du slot libre
@@ -75,10 +79,10 @@ char **get_password(shared_data_t *shared, void *return_string){
 		fprintf(stderr,
 				"Failed to access semaphore 'shared->reverse_empty' in function "
 					"'sort_thread.c/get_password'.\n");
-		return ((void*) -1);
+		return -1;
 	}
 	// Fin de la fonction.
-	return((void*) 0);
+	return 0;
 }
 
 /*
@@ -88,7 +92,7 @@ char **get_password(shared_data_t *shared, void *return_string){
  * @return	La fonction retourne un pointeur vers un 'void*'.
  * 			La fonction retourne le nombre de voyelles apparaissant dans le mot.
  */
-void * count_vowels(char password[]){
+int count_vowels(char *password){
 	int i;
 	int count = 0;
 	for(i=1; i<strlen(password); i++){
@@ -100,7 +104,7 @@ void * count_vowels(char password[]){
 			count++;
 		}
 	}
-	return ((void *) count);
+	return count;
 }
 
 /*
@@ -110,7 +114,7 @@ void * count_vowels(char password[]){
  * @return	La fonction retourne un pointeur vers un 'void*'.
  * 			La fonction retourne le nombre de consonnes apparaissant dans le mot.
  */
-void * count_consonants(char password[]){
+int count_consonants(char *password){
 	int i;
 	int count = 0;
 	for(i=1; i<strlen(password); i++){
@@ -122,7 +126,7 @@ void * count_consonants(char password[]){
 			count++;
 		}
 	}
-	return ((void *) count);
+	return count;
 }
 /**
  * Cette fonction recupere les mots de passes dechiffres et gere la liste des meilleurs candidats.
@@ -131,11 +135,12 @@ void * count_consonants(char password[]){
  * @return	La fonction retourne un pointeur vers un 'void *'.
  * 			La fonction retourne 0 si elle termine correctement, -1 sinon.
  */
-void *sort_passwords(void* shared){
-	linked_list_t candidates = (linked_list_t)(malloc(sizeof(linked_list_t)));  // liste des meilleurs candidats.
+void *sort_passwords(void* sort_params){
+	shared_data_t *shared = (shared_data_t *) (sort_params);
+	linked_list_t *candidates = (linked_list_t *) (malloc(sizeof(linked_list_t)));  // liste des meilleurs candidats.
 	int max_number = 0; 							// nombre max de voyelle ou consonne deja trouve.
 	int quality; 									// nombre de voyelle ou consonne de l'element analyse.
-	char to_compare[]; 								// element analyse.
+	char *to_compare; 								// element analyse.
 
 	// Tant que tous les fichiers n'ont pas ete reverse, on trie les mots de passe.
 	while(shared->all_files_reversed){
@@ -150,26 +155,25 @@ void *sort_passwords(void* shared){
 		if(shared->user_options->c_flag){	// Si ce sont des consonnes...
 			quality = count_consonants(to_compare);
 		}else{									// Si ce sont des voyelles...
-			quality = count_vowels(shared, &to_compare);
+			quality = count_vowels(to_compare);
 		}
 
 		// Tri des mots de passe
 		if(quality> max_number){					// S'il est de meilleur qualite que les autres...
 			remove_all(candidates);
-			add_node(candidates, &to_compare);
+			add_node(candidates, to_compare);
 			max_number = quality;
 		}else if(quality == max_number){			// S'il est de meme qualite que les autres...
-			add_node(candidates, &to_compare);
+			add_node(candidates, to_compare);
 		}
 	}
 
 	//Une fois le tri termine
 	if(shared->user_options->o_flag){		// Si ecriture dans un fichier...
 		node_t *traveller = candidates->head;
-		int i;
 
 		// Ouverture du fichier
-		int fr = open(shared->user_options->out_file_name, O_WRONLY|O_CREAT|P_TRUNC,S_IRWXU);
+		int fr = open(shared->user_options->out_file_name, O_WRONLY|O_CREAT|O_TRUNC,S_IRWXU);
 		if(fr == -1){
 			fprintf(stderr,
 					"Failed to open outfile in function 'sort_thread.c/sort_passwords'.\n");
@@ -177,7 +181,7 @@ void *sort_passwords(void* shared){
 		}
 
 		// Ecriture du fichier
-		while(i<=candidates->length){
+		for(int i = 0; i<=(candidates->length); i++){
 			if(write(fr,traveller->contents,(strlen(traveller->contents)+1)*sizeof(char)) != (strlen(traveller->contents)+1)*sizeof(char)){
 				fprintf(stderr,
 						"Failed to write in outfile in function 'sort_thread.c/sort_passwords'.\n");
@@ -187,7 +191,7 @@ void *sort_passwords(void* shared){
 			if(write(fr,"\n",sizeof(char)) != sizeof(char)){
 				fprintf(stderr,
 						"Failed to write in outfile in function 'sort_thread.c/sort_passowrds'.\n");
-				close(fr)
+				close(fr);
 				return ((void*) -1);
 			}
 		}
@@ -200,12 +204,13 @@ void *sort_passwords(void* shared){
 		}
 	}else{										// Si ecriture sur la sortie standart...
 		node_t *traveller = candidates->head;
-		int i;
 		printf("Here are the best candidates of the password list.\n");
 		printf("There is %d best candidates.\n",candidates->length);
-		while(i<=candidates->length){
-			printf("Candidate %04d : %s", traveller->contents);
+		for(int i = 0; i<=candidates->length; i++){
+			printf("Candidate %04d : %s", i, traveller->contents);
 			traveller = traveller->next;
 		}
 	}
+
+	return ((void *) 0);
 }
