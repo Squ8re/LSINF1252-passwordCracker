@@ -28,21 +28,23 @@
  * 			retourne 0 en cas de reussite
  * 			retourne un autre chiffre (int) en cas d'erreur.
  */
-void *get_hash(shared_data_t *shared, uint8_t **return_hash){
+int get_hash(shared_data_t *shared, uint8_t **return_hash){
 	int first_full_index; 			// premier indice rempli
 	int errcode;					// gestion des codes erreurs
 	// Attente d'un slot rempli
 	if(sem_wait(shared->hashes_full) == -1){
 		fprintf(stderr,
 				"Failed to access semaphore 'shared->hashes_full' in function 'reverse_thread.c/get_hash'.\n");
-		return ((void*) -1);}
+		return -1;
+	}
 
 	// Blocage du buffer
 	if((errcode=pthread_mutex_lock(shared->hashes_buffer_mtx)) != 0){
 		fprintf(stderr,
 				"Failed to lock mutex 'shared->hashes_buffer_mtx in function 'reverse_thread.c/get_hash'.\n");
 		errno = errcode;
-		return ((void*) -1);}
+		return -1;
+	}
 
 	int empty = 1;
 	while(empty == 1){
@@ -51,7 +53,8 @@ void *get_hash(shared_data_t *shared, uint8_t **return_hash){
 			fprintf(stderr,
 					"Failed to retrieve value from semaphore 'shared->hashes_full' in function "
 							"'reverse_thread.c/get_hash'.\n");
-			return ((void *) -1);}
+			return -1;
+		}
 		first_full_index--;
 		if(first_full_index < 0){
 
@@ -70,14 +73,15 @@ void *get_hash(shared_data_t *shared, uint8_t **return_hash){
 				"Failed to unlock mutex 'shared->hashes_buffer_mtx' in function "
 						"'reverse_thread.c/get_hash'.\n");
 		errno = errcode;
-		return ((void *) -1);}
+		return -1;
+	}
 
 	// On indique qu'il y a un slot libre
 	if(sem_post(shared->hashes_empty) == -1){
 		fprintf(stderr,
 				"Failed to access semaphore 'shared->hashes_empty' in function "
 						"'reverse_thread.c/get_hash'.\n");
-		return((void*)-1);
+		return -1;
 	}
 
 	// On verifie si tout les fichiers ont ete recuperes
@@ -86,7 +90,7 @@ void *get_hash(shared_data_t *shared, uint8_t **return_hash){
 	}
 
 	// On termine la fonction
-	return ((void*) 0);
+	return 0;
 }
 /**
  * Cette fonction transforme un hash et le stock dans le buffer des fichiers qui ne sont pas tries.
@@ -133,10 +137,10 @@ void *reverse(void *reverse_params){
 					"'reverse_thread.c/reverse'.\n");
 	return ((void *) -1);}
 
-	char *reversed; // On stocke en local le temps de lire la taille du String
+	char *reversed = (char *) malloc((shared->hash_length + 1) * sizeof(char));  // On stocke en local le temps de lire la taille du String
 
 	// Application de la fonction reverse.
-	if(!(reversehash(hash, &reversed, shared->hash_length))){
+	if(!(reversehash(hash, reversed, shared->hash_length))){
 		fprintf(stderr, "Failed to reverse hash in function 'reverse_thread.c/reverse'.\n");
 		return ((void *) -1);
 	}

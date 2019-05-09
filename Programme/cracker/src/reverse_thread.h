@@ -1,4 +1,3 @@
-#include "init.h"
 /*
  * reverse_thread.h
  *
@@ -9,8 +8,10 @@
 #ifndef SRC_REVERSE_THREAD_H_
 #define SRC_REVERSE_THREAD_H_
 
+#include "init.h"
 
-void *get_hash(shared_data_t *shared, void *return_hash);
+
+int get_hash(shared_data_t *shared, void *return_hash);
 
 void *reverse(void *shared);
 
