@@ -16,3 +16,9 @@ studssh:~ evannini$
 cf. aussi:
 SCP: https://wiki.student.info.ucl.ac.be/Documentation/Scp
 SSH: https://wiki.student.info.ucl.ac.be/Documentation/Ssh
+
+Pour amad :
+amadavid@studssh.info.ucl.ac.be:/etinfo/users/2019/amadavid/Documents/Q4/LSINF1252\ -\ Systèmes\ informatiques/
+
+Pour transférer des fichiers sans écraser ceux-déjà présent mais en rajoutant uniquement les différences sur le répertoire distant :
+rsync -avz -e 'ssh' /path/to/local/dir user@remotehost:/path/to/remote/dir
