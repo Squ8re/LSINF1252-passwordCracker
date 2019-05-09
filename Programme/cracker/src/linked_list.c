@@ -33,7 +33,7 @@ int add_node(linked_list_t *list, char *contents) {
 		return -1;
 	}
 
-	// Allocation de la memoirepour le contenu de la nouvelle node
+	// Allocation de la memoire pour le contenu de la nouvelle node
 	new_node->next = NULL;
 	new_node->contents = (char *) malloc_retry(10, 10,
 			sizeof(char) * (1 + strlen(contents)));
@@ -49,9 +49,11 @@ int add_node(linked_list_t *list, char *contents) {
 	if (!(list->head)) {
 		list->head = new_node;
 		list->tail = new_node;
+		list->length = 1;
 	} else {
 		list->tail->next = new_node;
 		list->tail = new_node;
+		list->length++;
 	}
 
 	return 0;
@@ -71,5 +73,19 @@ void remove_all(linked_list_t *list) {
 		free(list->head);
 		list->head = current_node;
 	}
+	list->tail = NULL;
+	list->length=0;
+}
+
+/*
+ * Fonction permettant d'initialiser une linked list vide.
+ *
+ * @pre 'list' est non-NULL et est non-initialisee.
+ * @post 'list' est initialisee (sa longueur est mise a 0 et ses pointeurs 'head' et 'tail' sont NULL)
+ *
+ */
+void init_linked_list(linked_list_t *list){
+	list->length = 0;
+	list->head = NULL;
 	list->tail = NULL;
 }

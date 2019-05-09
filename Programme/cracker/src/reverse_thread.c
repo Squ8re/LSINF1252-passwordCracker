@@ -7,7 +7,7 @@
 #include <errno.h>
 #include <string.h>
 
-#include "reverse.c"
+#include "reverse.h"
 #include "utilities.h"
 #include "init.h" 														// Utilisation de shared_data
 /*

@@ -138,6 +138,7 @@ int count_consonants(char *password){
 void *sort_passwords(void* sort_params){
 	shared_data_t *shared = (shared_data_t *) (sort_params);
 	linked_list_t *candidates = (linked_list_t *) (malloc(sizeof(linked_list_t)));  // liste des meilleurs candidats.
+	init_linked_list(candidates);
 	int max_number = 0; 							// nombre max de voyelle ou consonne deja trouve.
 	int quality; 									// nombre de voyelle ou consonne de l'element analyse.
 	char *to_compare; 								// element analyse.
@@ -169,8 +170,14 @@ void *sort_passwords(void* sort_params){
 	}
 
 	//Une fois le tri termine
+	node_t *traveller = candidates->head;
+	if(traveller == NULL){
+		// On n'a obtenu aucun candidat
+		printf("No available password (is there anything in your input files?).\n");
+		return ((void *) 0);
+	}
+
 	if(shared->user_options->o_flag){		// Si ecriture dans un fichier...
-		node_t *traveller = candidates->head;
 
 		// Ouverture du fichier
 		int fr = open(shared->user_options->out_file_name, O_WRONLY|O_CREAT|O_TRUNC,S_IRWXU);
@@ -181,8 +188,9 @@ void *sort_passwords(void* sort_params){
 		}
 
 		// Ecriture du fichier
-		for(int i = 0; i<=(candidates->length); i++){
-			if(write(fr,traveller->contents,(strlen(traveller->contents)+1)*sizeof(char)) != (strlen(traveller->contents)+1)*sizeof(char)){
+		for(int i = 0; i <= (candidates->length); i++){
+			if(write(fr, traveller->contents, (strlen(traveller->contents) + 1) * sizeof(char))
+					!= (strlen(traveller->contents) + 1) * sizeof(char)){
 				fprintf(stderr,
 						"Failed to write in outfile in function 'sort_thread.c/sort_passwords'.\n");
 				close(fr);

@@ -25,4 +25,6 @@ int add_node(linked_list_t *list, char *contents);
 
 void remove_all(linked_list_t *list);
 
+void init_linked_list(linked_list_t *list);
+
 #endif
