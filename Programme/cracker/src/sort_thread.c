@@ -48,6 +48,8 @@ void * get_password(shared_data_t *shared, void *return_string){
 	}
 
 	// Recuperation de l'indice du premier slot rempli dans le buffer
+	// TODO: meme commentaire que dans reverse_thread: je pense que la on check le premier slot libre et aussi
+	// il faut s'assurer qu'il y *a* un slot rempli (aka. le buffer n'est-il pas vide?)
 	if(sem_getvalue(shared->reversed_full, &first_full_index) == -1){
 		fprintf(stderr,
 				"Failed to retrieve value from semaphore 'shared->reversed_full' in function"
