@@ -56,9 +56,8 @@ char **get_password(shared_data_t *shared, void *return_string){
 	first_full_index--;
 
 	// Copie de la valeur a recuperer et free du slot buffer
-	memcpy(return_string,
-			(shared->reversed_buffer)[first_full_index],
-			shared);
+	strcpy(return_string,
+			(shared->reversed_buffer)[first_full_index]);
 	free((shared->hashes_buffer)[first_full_index]);
 
 	// Liberation du thread
