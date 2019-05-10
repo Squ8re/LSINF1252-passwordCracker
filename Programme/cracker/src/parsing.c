@@ -52,7 +52,7 @@ int parse_options(int argc, char **argv, options_t *user_options) {
 				} else {
 					// L'option "-c" a ete donnee plusieurs fois
 					fprintf(stderr, "Option '-c' used more than once.\n");
-					display_usage(stderr);
+					fprintf(stderr, "Usage: ./cracker [-t NTHREADS] [-c] [-o FICHIEROUT] FICHIER1 [FICHIER2 ... FICHIERN]\n");
 					free(user_options->out_file_name);
 					return -1;
 				}
@@ -73,7 +73,7 @@ int parse_options(int argc, char **argv, options_t *user_options) {
 				} else {
 					// L'option "-o" a ete donnee plusieurs fois
 					fprintf(stderr, "Option '-o' used more than once.\n");
-					display_usage(stderr);
+					fprintf(stderr, "Usage: ./cracker [-t NTHREADS] [-c] [-o FICHIEROUT] FICHIER1 [FICHIER2 ... FICHIERN]\n");
 					free(user_options->out_file_name);
 					return -1;
 				}
@@ -88,7 +88,7 @@ int parse_options(int argc, char **argv, options_t *user_options) {
 						fprintf(stderr,
 								"'%s' is not a valid value for option '-t'. The value must be a positive integer.\n",
 								optarg);
-						display_usage(stderr);
+						fprintf(stderr, "Usage: ./cracker [-t NTHREADS] [-c] [-o FICHIEROUT] FICHIER1 [FICHIER2 ... FICHIERN]\n");
 						free(user_options->out_file_name);
 						return -1;
 					}
@@ -96,7 +96,7 @@ int parse_options(int argc, char **argv, options_t *user_options) {
 				} else {
 					// L'option "-t" a ete utilisee plusieurs fois
 					fprintf(stderr, "Option '-t' used more than once.\n");
-					display_usage(stderr);
+					fprintf(stderr, "Usage: ./cracker [-t NTHREADS] [-c] [-o FICHIEROUT] FICHIER1 [FICHIER2 ... FICHIERN]\n");
 					free(user_options->out_file_name);
 					return -1;
 				}
@@ -110,7 +110,7 @@ int parse_options(int argc, char **argv, options_t *user_options) {
 					fprintf(stderr, "Unknown option character '\\x%x'.\n",
 							optopt);
 				}
-				display_usage(stderr);
+				fprintf(stderr, "Usage: ./cracker [-t NTHREADS] [-c] [-o FICHIEROUT] FICHIER1 [FICHIER2 ... FICHIERN]\n");
 				free(user_options->out_file_name);
 				return -1;
 				break;
@@ -125,7 +125,7 @@ int parse_options(int argc, char **argv, options_t *user_options) {
 	user_options->n_files = argc - optind;
 	if (user_options->n_files == 0) {
 		fprintf(stderr, "At least one input file must be provided.\n");
-		display_usage(stderr);
+		fprintf(stderr, "Usage: ./cracker [-t NTHREADS] [-c] [-o FICHIEROUT] FICHIER1 [FICHIER2 ... FICHIERN]\n");
 		free(user_options->out_file_name);
 		return -1;
 	}

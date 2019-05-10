@@ -45,18 +45,6 @@ int file_exists(const char *filename) {
 }
 
 /*
- * Fonction qui permet d'afficher sur la sortie 'out' un message indiquant la bonne utilisation du programme.
- *
- * @pre out != NULL
- * @post L'affichage est effectue comme decrit ci dessus.
- *
- */
-void display_usage(FILE *restrict out) {
-	fprintf(out,
-			"Usage: ./cracker [-t NTHREADS] [-c] [-o FICHIEROUT] FICHIER1 [FICHIER2 ... FICHIERN]\n");
-}
-
-/*
  * Fonction qui tente d'effectuer un 'malloc' un maximum de 'n_tries' fous et en espacant les tentatives
  * de 'delay_ms' millisecondes.
  *
@@ -72,21 +60,6 @@ void *malloc_retry(unsigned int n_tries, unsigned int delay_ms, size_t size) {
 		custom_sleep(delay_ms);
 	}
 	return ptr;
-}
-
-/*
- * Fonction qui permet d'afficher la valeur hexadecimale d'un hash de longueur donnee sur la sortie 'out'.
- *
- * @pre 'out' est une sortie valide et non-NULL. 'hash' est non-NULL. 'hash_length' correspond a la longueur
- *      de 'hash'.
- * @post Le hash est affiche sur la sortie 'out' sous la forme "0x......". La ligne ne se termine *pas* par '\n'.
- *
- */
-void print_hash(FILE *restrict out, uint8_t *hash, unsigned int hash_length) {
-	fprintf(out, "0x");
-	for (int i = 0; i < hash_length; i++) {
-		fprintf(out, "%02x", hash[i]);
-	}
 }
 
 /*
