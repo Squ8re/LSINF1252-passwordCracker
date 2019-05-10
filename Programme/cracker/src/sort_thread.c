@@ -66,8 +66,13 @@ int get_password(shared_data_t *shared, char *return_string){
 	// printf("PWD SEMGETVALUE DONE\n");  //TODO: backme
 
 	// Copie de la valeur a recuperer et free du slot buffer
-	strcpy(return_string, (shared->reversed_buffer)[first_full_index]);
-	//memcpy(return_string, (shared->reversed_buffer)[first_full_index], shared->hash_length * sizeof(char));
+	// strcpy(return_string, (shared->reversed_buffer)[first_full_index]);
+	memcpy(return_string, (shared->reversed_buffer)[first_full_index], shared->hash_length * sizeof(char));
+
+	///////////// TODO: a retirer /////////////////
+	printf("%d et %d et %d\n", return_string == NULL, strcmp(return_string, "\0") == 0, strlen((shared->reversed_buffer)[first_full_index]) == 0);
+	printf("APRES MMCP pwd #%d from buffer: %s\n", 69, return_string);
+	///////////////////////////////////////////////
 	free((shared->reversed_buffer)[first_full_index]);
 
 	// printf("PWD STRCPY ET FREE DONE\n");  //TODO: backme
@@ -163,13 +168,17 @@ void *sort_passwords(void* sort_params){
 	while(!(shared->all_files_reversed)){
 		// printf("SORT IN WHILE\n");  //TODO:backme
 		// Recuperation d'un mot de passe
+
+		///////////// TODO: a retirer /////////////////
+		printf("AVANT getpwd #%d from buffer: %s\n", 69, to_compare);
+		///////////////////////////////////////////////
 		if(get_password(shared, to_compare) == -1){
 			fprintf(stderr,
 					"Failed to retrieve password in function 'sort_thread.c/sort_passwords.\n");
 			return ((void*) -1);
 		}
 
-		printf("SORT: PASSWORD GOT\n");  //TODO: backme
+		//printf("SORT: PASSWORD GOT\n");  //TODO: backme
 		///////////// TODO: a retirer /////////////////
 		printf("Retrieved pwd #%d from buffer: %s\n", 69, to_compare);
 		///////////////////////////////////////////////
@@ -181,7 +190,7 @@ void *sort_passwords(void* sort_params){
 			quality = count_vowels(to_compare);
 		}
 
-		printf("SORT LETTRES COMPTEES\n");  // TODO: backme
+		//printf("SORT LETTRES COMPTEES\n");  // TODO: backme
 
 		// Tri des mots de passe
 		if(quality> max_number){					// S'il est de meilleur qualite que les autres...

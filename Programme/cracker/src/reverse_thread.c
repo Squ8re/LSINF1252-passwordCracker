@@ -174,6 +174,7 @@ void *reverse(void *reverse_params){
 		}
 		// On copie le reversed hash dans la structure partagee
 		strcpy((shared->reversed_buffer)[first_free_index], reversed);
+		free(reversed);
 
 		// On libere le buffer
 		if ((errcode = pthread_mutex_unlock(shared->reversed_buffer_mtx))) {
