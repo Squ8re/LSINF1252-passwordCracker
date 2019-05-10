@@ -67,13 +67,22 @@ int get_password(shared_data_t *shared, char *return_string){
 
 	// Copie de la valeur a recuperer et free du slot buffer
 	// strcpy(return_string, (shared->reversed_buffer)[first_full_index]);
+
+	// Constat: il n'y a rien dans shared-.....[first...] (TODO)
+	// D'apres google, il manque le  \0
+
+	first_full_index--;  // TODO: viremoi
+
 	memcpy(return_string, (shared->reversed_buffer)[first_full_index], shared->hash_length * sizeof(char));
 
 	///////////// TODO: a retirer /////////////////
-	printf("%d et %d et %d\n", return_string == NULL, strcmp(return_string, "\0") == 0, strlen((shared->reversed_buffer)[first_full_index]) == 0);
+	printf("(retstr) %d\n", return_string == NULL);
+	printf("(strcmp) %d\n", strcmp(return_string, "\0") == 0);
+	printf("(strlen) %d\n", strlen((shared->reversed_buffer)[first_full_index]) == 0);
 	printf("APRES MMCP pwd #%d from buffer: %s\n", 69, return_string);
 	///////////////////////////////////////////////
 	free((shared->reversed_buffer)[first_full_index]);
+	printf("SUPPRESSION DU SLOT %d\n", first_full_index);  // TODO: viremoi
 
 	// printf("PWD STRCPY ET FREE DONE\n");  //TODO: backme
 
@@ -169,9 +178,6 @@ void *sort_passwords(void* sort_params){
 		// printf("SORT IN WHILE\n");  //TODO:backme
 		// Recuperation d'un mot de passe
 
-		///////////// TODO: a retirer /////////////////
-		printf("AVANT getpwd #%d from buffer: %s\n", 69, to_compare);
-		///////////////////////////////////////////////
 		if(get_password(shared, to_compare) == -1){
 			fprintf(stderr,
 					"Failed to retrieve password in function 'sort_thread.c/sort_passwords.\n");

@@ -141,9 +141,20 @@ void *reverse(void *reverse_params){
 			errno = errcode;
 			return ((void*) -1);}
 
+
+		// Blocage du buffer (ajout TODO) ////////////////////////////////////////////////////////////////
+		if((errcode=pthread_mutex_lock(shared->hashes_buffer_mtx)) != 0){
+			fprintf(stderr,
+					"Failed to lock mutex 'shared->reversed_buffer_mtx in function 'reverse_thread.c/reverse'.\n");
+			errno = errcode;
+			return ((void*) -1);}
+
+
 		// printf("LOCK PASSE\n"); // TODO: viremoi
 
 		// On recupere l'indice du premier slot rempli dans le buffer
+		printf("Calcul de l'index de creation\n");  // TODO: viremoi
+
 		if (sem_getvalue(shared->hashes_full, &first_free_index) == -1) {
 		fprintf(stderr,
 				"Failed to retrieve value from semaphore 'shared->reversed_empty' in function "
@@ -166,6 +177,7 @@ void *reverse(void *reverse_params){
 
 		// On cree l'espace pour le reversed_hash
 		(shared->reversed_buffer)[first_free_index] = (char *) (malloc((strlen(reversed) + 1)*sizeof(char)));
+		printf("CREATION DU SLOT %d\n", first_free_index);  // TODO: viremoi
 		if(!(shared->reversed_buffer)[first_free_index]){
 			fprintf(stderr,
 					"Failed to allocate memory for '(shared->reversed_buffer)[first_free_index]' "
@@ -173,8 +185,19 @@ void *reverse(void *reverse_params){
 			return((void *) -1);
 		}
 		// On copie le reversed hash dans la structure partagee
-		strcpy((shared->reversed_buffer)[first_free_index], reversed);
+		// strcpy((shared->reversed_buffer)[first_free_index], reversed);
+		memcpy((shared->reversed_buffer)[first_free_index], reversed, (strlen(reversed) + 1)*sizeof(char));
+		printf("Je fais des tests: %s\n", (shared->reversed_buffer)[first_free_index]);  // TODO: viremoi
 		free(reversed);
+
+		// On libere le buffer (ajout TODO)///////////////////////////////////////////////////////:
+		if ((errcode = pthread_mutex_unlock(shared->hashes_buffer_mtx))) {
+			fprintf(stderr,
+					"Failed to unlock mutex 'shared->reversed_buffer_mtx' in function "
+							"'reverse_thread.c/reverse'.\n");
+			errno = errcode;
+			return ((void *) -1);
+		}
 
 		// On libere le buffer
 		if ((errcode = pthread_mutex_unlock(shared->reversed_buffer_mtx))) {
