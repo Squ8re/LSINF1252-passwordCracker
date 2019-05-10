@@ -67,7 +67,8 @@ int get_password(shared_data_t *shared, char *return_string){
 
 	// Copie de la valeur a recuperer et free du slot buffer
 	strcpy(return_string, (shared->reversed_buffer)[first_full_index]);
-	free((shared->hashes_buffer)[first_full_index]);
+	//memcpy(return_string, (shared->reversed_buffer)[first_full_index], shared->hash_length * sizeof(char));
+	free((shared->reversed_buffer)[first_full_index]);
 
 	// printf("PWD STRCPY ET FREE DONE\n");  //TODO: backme
 
@@ -168,7 +169,10 @@ void *sort_passwords(void* sort_params){
 			return ((void*) -1);
 		}
 
-		// printf("SORT: PASSWORD GOT\n");  //TODO: backme
+		printf("SORT: PASSWORD GOT\n");  //TODO: backme
+		///////////// TODO: a retirer /////////////////
+		printf("Retrieved pwd #%d from buffer: %s\n", 69, to_compare);
+		///////////////////////////////////////////////
 
 		// recuperation du nombre de lettre a optimiser
 		if(shared->user_options->c_flag){	// Si ce sont des consonnes...
@@ -177,7 +181,7 @@ void *sort_passwords(void* sort_params){
 			quality = count_vowels(to_compare);
 		}
 
-		// printf("SORT LETTRES COMPTEES\n");  // TODO: backme
+		printf("SORT LETTRES COMPTEES\n");  // TODO: backme
 
 		// Tri des mots de passe
 		if(quality> max_number){					// S'il est de meilleur qualite que les autres...
@@ -189,7 +193,8 @@ void *sort_passwords(void* sort_params){
 		}
 	}
 
-	// printf("SORT: FIN DE LA WHILE LOOP\n");  // TODO: backme
+	free(to_compare);
+	printf("SORT: FIN DE LA WHILE LOOP\n");  // TODO: backme
 
 	//Une fois le tri termine
 	node_t *traveller = candidates->head;

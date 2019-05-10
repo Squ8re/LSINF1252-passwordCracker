@@ -152,7 +152,7 @@ void *reverse(void *reverse_params){
 
 		// printf("GETVALUE PASSE\n"); // TODO: viremoi
 
-		char *reversed = (char *) malloc((shared->hash_length + 1) * sizeof(char));  // On stocke en local le temps de lire la taille du String
+		char *reversed = (char *) malloc(shared->hash_length * sizeof(char));  // On stocke en local le temps de lire la taille du String
 		/// TODO: ci-dessus? sur la stack?
 
 		// Application de la fonction reverse.
@@ -165,7 +165,7 @@ void *reverse(void *reverse_params){
 		// printf("REVERSED PASSE\n"); // TODO: viremoi
 
 		// On cree l'espace pour le reversed_hash
-		(shared->reversed_buffer)[first_free_index] = (char *) (malloc((strlen(reversed)+1)*sizeof(char)));
+		(shared->reversed_buffer)[first_free_index] = (char *) (malloc((strlen(reversed) + 1)*sizeof(char)));
 		if(!(shared->reversed_buffer)[first_free_index]){
 			fprintf(stderr,
 					"Failed to allocate memory for '(shared->reversed_buffer)[first_free_index]' "
