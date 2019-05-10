@@ -43,8 +43,6 @@ int get_password(shared_data_t *shared, char *return_string){
 		return -1;
 	}
 
-	// printf("PWD SEM WAIT DONE\n");  //TODO: backme
-
 	// Blocage du buffer
 	if((errcode=pthread_mutex_lock(shared->reversed_buffer_mtx)) != 0){
 		fprintf(stderr,
@@ -52,8 +50,6 @@ int get_password(shared_data_t *shared, char *return_string){
 		errno = errcode;
 		return -1;
 	}
-
-	// printf("PWD LOCK DONE\n");  //TODO: backme
 
 	// Recuperation de l'indice du premier slot rempli dans le buffer
 	if(sem_getvalue(shared->reversed_full, &first_full_index) == -1){
@@ -63,28 +59,8 @@ int get_password(shared_data_t *shared, char *return_string){
 		return -1;
 	}
 
-	// printf("PWD SEMGETVALUE DONE\n");  //TODO: backme
-
-	// Copie de la valeur a recuperer et free du slot buffer
-	// strcpy(return_string, (shared->reversed_buffer)[first_full_index]);
-
-	// Constat: il n'y a rien dans shared-.....[first...] (TODO)
-	// D'apres google, il manque le  \0
-
-	//first_full_index--;  // TODO: viremoi
-
 	memcpy(return_string,((shared->reversed_buffer)[first_full_index]),shared->hash_length * sizeof(char));
 	free((shared->reversed_buffer)[first_full_index]);
-
-	///////////// TODO: a retirer /////////////////
-	printf("(retstr) %d\n", return_string == NULL);
-	printf("(strcmp) %d\n", strcmp(return_string, "\0") == 0);
-	printf("(strlen) %d\n", strlen((shared->reversed_buffer)[first_full_index]) == 0);
-	printf("APRES MMCP pwd #%d from buffer: %s\n", 69, return_string);
-	///////////////////////////////////////////////
-	printf("SUPPRESSION DU SLOT %d\n", first_full_index);  // TODO: viremoi
-
-	// printf("PWD STRCPY ET FREE DONE\n");  //TODO: backme
 
 	// Liberation du thread
 	if((errcode = pthread_mutex_unlock(shared->reversed_buffer_mtx))){
@@ -95,8 +71,6 @@ int get_password(shared_data_t *shared, char *return_string){
 		return -1;
 	}
 
-	// printf("PWD UNLOCK DONE\n");  //TODO: backme
-
 	// Indication du slot libre
 	if(sem_post(shared->reversed_empty) == -1){
 		fprintf(stderr,
@@ -104,8 +78,6 @@ int get_password(shared_data_t *shared, char *return_string){
 					"'sort_thread.c/get_password'.\n");
 		return -1;
 	}
-
-	// printf("PWD UNLOCK DONE\n");  //TODO: backme
 	// Fin de la fonction.
 	return 0;
 }
@@ -161,7 +133,6 @@ int count_consonants(char *password){
  * 			La fonction retourne 0 si elle termine correctement, -1 sinon.
  */
 void *sort_passwords(void* sort_params){
-	//return ((void *) 0);  // TODO: backme
 	shared_data_t *shared = (shared_data_t *) (sort_params);
 	linked_list_t *candidates = (linked_list_t *) (malloc(sizeof(linked_list_t)));  // liste des meilleurs candidats.
 	init_linked_list(candidates);
@@ -171,8 +142,6 @@ void *sort_passwords(void* sort_params){
 
 	// Tant que tous les fichiers n'ont pas ete reverse, on trie les mots de passe.
 	while(!(shared->all_files_reversed)){
-		// printf("SORT IN WHILE\n");  //TODO:backme
-		printf("Je lance un sort.\n"); //TODO: viremoi
 
 		// Recuperation d'un mot de passe
 		to_compare = (char *) malloc_retry(10, 10, shared->hash_length * sizeof(char));  // element analyse.
@@ -186,19 +155,12 @@ void *sort_passwords(void* sort_params){
 			return ((void*) -1);
 		}
 
-		//printf("SORT: PASSWORD GOT\n");  //TODO: backme
-		///////////// TODO: a retirer /////////////////
-		printf("Retrieved pwd #%d from buffer: %s\n", 69, to_compare);
-		///////////////////////////////////////////////
-
 		// recuperation du nombre de lettre a optimiser
 		if(shared->user_options->c_flag){	// Si ce sont des consonnes...
 			quality = count_consonants(to_compare);
 		}else{									// Si ce sont des voyelles...
 			quality = count_vowels(to_compare);
 		}
-
-		//printf("SORT LETTRES COMPTEES\n");  // TODO: backme
 
 		// Tri des mots de passe
 		if(quality> max_number){					// S'il est de meilleur qualite que les autres...
@@ -210,7 +172,6 @@ void *sort_passwords(void* sort_params){
 		}
 		free(to_compare);
 	}
-	printf("SORT: FIN DE LA WHILE LOOP\n");  // TODO: backme
 
 	//Une fois le tri termine
 	node_t *traveller = candidates->head;

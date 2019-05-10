@@ -53,7 +53,6 @@ void *read_files(void *reader_params) {
 	int file;
 	char *filename;
 	int errcode;  // Variable permettant de gerer les codes d'erreur ci-dessous
-	unsigned int hash_count; // TODO: retirer ceci, c'est juste pour l'affichage des hashes (temporaire)
 
 	// Pour chaque fichier de hashes, on lit les hashes un par un
 	for (int i = 0; i < shared->user_options->n_files; i++) {
@@ -65,8 +64,6 @@ void *read_files(void *reader_params) {
 					filename);
 			return ((void *) -1);
 		}
-
-		hash_count = 0;  // TODO: Temporaire, juste pour l'affichage des hashes
 
 		// "Tant que l'on a pas atteint la fin du fichier et que l'on ne rencontre aucune erreur"
 		while ((errcode = read(file, (void *) read_hash,
@@ -100,9 +97,6 @@ void *read_files(void *reader_params) {
 				return ((void *) -1);
 			}
 
-			// Attention! TODO: verifier qu'on a bien free l'eventuel hash precedent au niveau du consommateur
-			printf("michel: %d\n", first_free_index);
-
 			(shared->hashes_buffer)[first_free_index] = (uint8_t *) malloc_retry(10, 10, shared->hash_length * sizeof(uint8_t));
 			if (!((shared->hashes_buffer)[first_free_index])) {
 				fprintf(stderr,
@@ -111,16 +105,6 @@ void *read_files(void *reader_params) {
 				return ((void *) -1);
 			}
 			memcpy((shared->hashes_buffer)[first_free_index], read_hash, shared->hash_length * sizeof(uint8_t));
-
-
-			// (shared->hashes_buffer)[first_free_index] = read_hash;
-			//TODO : a supprimer
-			printf("Added hash #%d to buffer: ", ++hash_count);
-			print_hash(stdout, (shared->hashes_buffer)[first_free_index], shared->hash_length);
-			printf("\n            Buffer view: ");
-			print_hash(stdout, (shared->hashes_buffer)[first_free_index],
-					shared->hash_length);
-			printf("\n");
 
 			// On libere 'hashes_buffer'
 			if ((errcode = pthread_mutex_unlock(shared->hashes_buffer_mtx))) {
@@ -161,8 +145,6 @@ void *read_files(void *reader_params) {
 	}
 	free(read_hash);
 	shared->all_files_read = true;  // Tous les fichiers ont ete lus en entier
-
-	printf("TOUS LES FICHIERS ONT ETE LUS\n"); //TODO: a supp
 
 	return ((void *) 0);
 }
