@@ -37,22 +37,6 @@ int create_buffers(shared_data_t *shared) {
 		return -1;
 	}
 
-	// Allocation de la memoire pour les hashes qui seront contenus dans le buffer 'hashes_buffer'
-	for (int i = 0; i < shared->buffer_length; i++) {
-		(shared->hashes_buffer)[i] = (uint8_t *) malloc_retry(10, 10,
-				shared->hash_length * sizeof(uint8_t));
-		if (!(shared->hashes_buffer)[i]) {
-			for (int j = 0; j < i; j++) {
-				free((shared->hashes_buffer)[j]);
-			}
-			free(shared->hashes_buffer);
-			fprintf(stderr,
-					"Failed to allocate memory for '(shared->hashes_buffer)[%d]' "
-							"in function 'init.c/create_buffers'.\n", i);
-			return -1;
-		}
-	}
-
 	// Allocation de la memoire pour le buffer 'reversed_buffer' qui contiendra les mots de passe en clair
 	shared->reversed_buffer = (char **) malloc_retry(10, 10,
 			shared->buffer_length * sizeof(char *));

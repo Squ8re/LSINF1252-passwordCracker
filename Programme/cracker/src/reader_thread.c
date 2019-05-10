@@ -16,6 +16,7 @@
 #include <semaphore.h>
 #include <unistd.h>
 #include <errno.h>
+#include <string.h>
 
 #include "utilities.h"
 #include "init.h"
@@ -100,10 +101,22 @@ void *read_files(void *reader_params) {
 			}
 
 			// Attention! TODO: verifier qu'on a bien free l'eventuel hash precedent au niveau du consommateur
-			(shared->hashes_buffer)[first_free_index] = read_hash;
+			printf("michel: %d\n", first_free_index);
+
+			(shared->hashes_buffer)[first_free_index] = (uint8_t *) malloc_retry(10, 10, shared->hash_length * sizeof(uint8_t));
+			if (!((shared->hashes_buffer)[first_free_index])) {
+				fprintf(stderr,
+						"Failed to allocate memory for '(shared->hashes_buffer)[first_free_index]' in function"
+						" 'reader_thread.c/read_files'.\n");
+				return ((void *) -1);
+			}
+			memcpy((shared->hashes_buffer)[first_free_index], read_hash, shared->hash_length * sizeof(uint8_t));
+
+
+			// (shared->hashes_buffer)[first_free_index] = read_hash;
 			//TODO : a supprimer
 			printf("Added hash #%d to buffer: ", ++hash_count);
-			print_hash(stdout, read_hash, shared->hash_length);
+			print_hash(stdout, (shared->hashes_buffer)[first_free_index], shared->hash_length);
 			printf("\n            Buffer view: ");
 			print_hash(stdout, (shared->hashes_buffer)[first_free_index],
 					shared->hash_length);

@@ -12,7 +12,7 @@
 #include "init.h"
 
 
-int get_hash(shared_data_t *shared, void *return_hash);
+int get_hash(shared_data_t *shared, uint8_t *return_hash);
 
 void *reverse(void *shared);
 

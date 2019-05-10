@@ -29,7 +29,7 @@
  * 			retourne 0 en cas de reussite
  * 			retourne un autre chiffre (int) en cas d'erreur.
  */
-int get_hash(shared_data_t *shared, uint8_t **return_hash){
+int get_hash(shared_data_t *shared, uint8_t *return_hash){
 	int first_full_index; 			// premier indice rempli
 	int errcode;					// gestion des codes erreurs
 	// Attente d'un slot rempli
@@ -57,9 +57,11 @@ int get_hash(shared_data_t *shared, uint8_t **return_hash){
 	}
 
 	// On copie la valeur a recuperer et on la supprime du buffer
+	printf("robert: %d\n", first_full_index);  // TODO: viremoi
+
 	memcpy(return_hash,
-			(shared->hashes_buffer)[first_full_index],
-			shared->hash_length * sizeof(uint8_t));
+			((shared->hashes_buffer)[first_full_index]),
+			sizeof(uint8_t) * shared->hash_length);
 	free((shared->hashes_buffer)[first_full_index]);
 
 	// On libere le thread
@@ -97,6 +99,7 @@ int get_hash(shared_data_t *shared, uint8_t **return_hash){
  * 			retour un autre chiffre (int) en cas d'erreur.
  */
 void *reverse(void *reverse_params){
+	//return ((void *) 0);  // TODO: viremoi
 	shared_data_t *shared = (shared_data_t *) (reverse_params);
 	int first_free_index = -1; 		// premier indice rempli
 	int errcode;					// gestion des codes erreurs
@@ -104,24 +107,22 @@ void *reverse(void *reverse_params){
 	int hash_count = 0; // TODO: A retirer: ceci sert pour le print!
 
 	while(!(shared->all_files_read && first_free_index == 0)){
-		printf("LES FICHIERS READ: %d\n", shared->all_files_read);  // TODO: viremoi
+		// printf("LES FICHIERS READ: %d\n", shared->all_files_read);  // TODO: viremoi
 		fflush(stdout);
-		// printf("MDR\ntatankwa\n?");  // TODO: viremoi
 		// Recuperation d'un hash.
-		uint8_t *hash = (uint8_t *)(malloc(shared->hash_length * sizeof(uint8_t)));
+		uint8_t *hash = (uint8_t *) (malloc(shared->hash_length * sizeof(uint8_t)));
 		if(!hash){
 			fprintf(stderr, "Failed to allocate memory for 'hash' in function 'reverse_thread.c/reverse'.\n");
 			return ((void*) -1);
 		}
-		if(get_hash(shared, &hash) != 0){
+		if(get_hash(shared, hash) != 0){
 			fprintf(stderr,
 					"Failed to retrieve hash from 'shared->hashes_buffer' in function 'reverse_thread.c/reverse'.\n");
 		}
 
 		///////////// TODO: a retirer /////////////////
-		printf("hashnull: %d", hash == NULL); // TODO: viremoi
 		printf("Retrieved hash #%d from buffer: ", ++hash_count);
-		//print_hash(stdout, hash, shared->hash_length);
+		print_hash(stdout, hash, shared->hash_length);
 		printf("\n");
 		///////////////////////////////////////////////
 
@@ -131,12 +132,16 @@ void *reverse(void *reverse_params){
 					"Failed to access semaphore 'shared->reversed_empty' in function 'reverse_thread.c/reverse'.\n");
 			return ((void*) -1);}
 
+		// printf("WAIT PASSE\n"); // TODO: viremoi
+
 		// Blocage du buffer
 		if((errcode=pthread_mutex_lock(shared->reversed_buffer_mtx)) != 0){
 			fprintf(stderr,
 					"Failed to lock mutex 'shared->reversed_buffer_mtx in function 'reverse_thread.c/reverse'.\n");
 			errno = errcode;
 			return ((void*) -1);}
+
+		// printf("LOCK PASSE\n"); // TODO: viremoi
 
 		// On recupere l'indice du premier slot rempli dans le buffer
 		if (sem_getvalue(shared->hashes_full, &first_free_index) == -1) {
@@ -145,7 +150,10 @@ void *reverse(void *reverse_params){
 						"'reverse_thread.c/reverse'.\n");
 		return ((void *) -1);}
 
+		// printf("GETVALUE PASSE\n"); // TODO: viremoi
+
 		char *reversed = (char *) malloc((shared->hash_length + 1) * sizeof(char));  // On stocke en local le temps de lire la taille du String
+		/// TODO: ci-dessus? sur la stack?
 
 		// Application de la fonction reverse.
 		if(!(reversehash(hash, reversed, shared->hash_length))){
@@ -153,6 +161,8 @@ void *reverse(void *reverse_params){
 			return ((void *) -1);
 		}
 		free(hash);
+
+		// printf("REVERSED PASSE\n"); // TODO: viremoi
 
 		// On cree l'espace pour le reversed_hash
 		(shared->reversed_buffer)[first_free_index] = (char *) (malloc((strlen(reversed)+1)*sizeof(char)));
@@ -174,6 +184,8 @@ void *reverse(void *reverse_params){
 			return ((void *) -1);
 		}
 
+		// printf("UNLOCKED PASSE\n"); // TODO: viremoi
+
 		// On indique qu'il y a un slot rempli en plus
 		if(sem_post(shared->reversed_full) == -1){
 			fprintf(stderr,
@@ -181,8 +193,10 @@ void *reverse(void *reverse_params){
 							"'reverse_thread.c/reverse'.\n");
 			return((void*)-1);
 		}
+
+		// printf("POSTED PASSE\n"); // TODO: viremoi
 	}
-	printf("SORTI DE LA WHILE\n");  // TODO: viremoi
+	// printf("SORTI DE LA WHILE\n");  // TODO: viremoi
 	// On termine la fonction.
 	return((void*) 0);
 }
