@@ -161,5 +161,8 @@ void *read_files(void *reader_params) {
 	}
 	free(read_hash);
 	shared->all_files_read = true;  // Tous les fichiers ont ete lus en entier
+
+	printf("TOUS LES FICHIERS ONT ETE LUS\n"); //TODO: a supp
+
 	return ((void *) 0);
 }

@@ -63,6 +63,7 @@ int get_hash(shared_data_t *shared, uint8_t *return_hash){
 			((shared->hashes_buffer)[first_full_index]),
 			sizeof(uint8_t) * shared->hash_length);
 	free((shared->hashes_buffer)[first_full_index]);
+	free((shared->reversed_buffer)[first_full_index]);
 
 	// On libere le thread
 	if ((errcode = pthread_mutex_unlock(shared->hashes_buffer_mtx))) {
@@ -103,14 +104,17 @@ void *reverse(void *reverse_params){
 	shared_data_t *shared = (shared_data_t *) (reverse_params);
 	int first_free_index = -1; 		// premier indice rempli
 	int errcode;					// gestion des codes erreurs
+	uint8_t *hash;
+	char *reversed;
 
 	int hash_count = 0; // TODO: A retirer: ceci sert pour le print!
 
 	while(!(shared->all_files_read && first_free_index == 0)){
-		// printf("LES FICHIERS READ: %d\n", shared->all_files_read);  // TODO: viremoi
-		fflush(stdout);
+		printf("Je lance un reverse.\n"); //TODO: viremoi
+		//printf("LES FICHIERS READ: %d\n", shared->all_files_read);  // TODO: viremoi
+		fflush(stdout); //TODO: viremoi
 		// Recuperation d'un hash.
-		uint8_t *hash = (uint8_t *) (malloc(shared->hash_length * sizeof(uint8_t)));
+		hash = (uint8_t *) (malloc(shared->hash_length * sizeof(uint8_t)));
 		if(!hash){
 			fprintf(stderr, "Failed to allocate memory for 'hash' in function 'reverse_thread.c/reverse'.\n");
 			return ((void*) -1);
@@ -119,6 +123,16 @@ void *reverse(void *reverse_params){
 			fprintf(stderr,
 					"Failed to retrieve hash from 'shared->hashes_buffer' in function 'reverse_thread.c/reverse'.\n");
 		}
+		reversed = (char *) malloc(shared->hash_length * sizeof(char));
+		if(!reversed){
+			fprintf(stderr, "Failed to allocate memory for 'reversed' in function 'reverse_thread.c/reverse'.\n");
+		}
+		// Application de la fonction reverse.
+		if(!(reversehash(hash, reversed, shared->hash_length))){
+			fprintf(stderr, "Failed to reverse hash in function 'reverse_thread.c/reverse'.\n");
+			return ((void *) -1);
+		}
+		free(hash);
 
 		///////////// TODO: a retirer /////////////////
 		printf("Retrieved hash #%d from buffer: ", ++hash_count);
@@ -143,19 +157,19 @@ void *reverse(void *reverse_params){
 
 
 		// Blocage du buffer (ajout TODO) ////////////////////////////////////////////////////////////////
-		if((errcode=pthread_mutex_lock(shared->hashes_buffer_mtx)) != 0){
-			fprintf(stderr,
-					"Failed to lock mutex 'shared->reversed_buffer_mtx in function 'reverse_thread.c/reverse'.\n");
-			errno = errcode;
-			return ((void*) -1);}
+		//if((errcode=pthread_mutex_lock(shared->hashes_buffer_mtx)) != 0){
+		//	fprintf(stderr,
+		//			"Failed to lock mutex 'shared->reversed_buffer_mtx in function 'reverse_thread.c/reverse'.\n");
+		//	errno = errcode;
+		//	return ((void*) -1);}
 
 
 		// printf("LOCK PASSE\n"); // TODO: viremoi
 
-		// On recupere l'indice du premier slot rempli dans le buffer
+		// On recupere l'indice du premier slot rempli dans le buffer reverse
 		printf("Calcul de l'index de creation\n");  // TODO: viremoi
 
-		if (sem_getvalue(shared->hashes_full, &first_free_index) == -1) {
+		if (sem_getvalue(shared->reversed_full, &first_free_index) == -1) {
 		fprintf(stderr,
 				"Failed to retrieve value from semaphore 'shared->reversed_empty' in function "
 						"'reverse_thread.c/reverse'.\n");
@@ -163,27 +177,27 @@ void *reverse(void *reverse_params){
 
 		// printf("GETVALUE PASSE\n"); // TODO: viremoi
 
-		char *reversed = (char *) malloc(shared->hash_length * sizeof(char));  // On stocke en local le temps de lire la taille du String
+		  // On stocke en local le temps de lire la taille du String
 		/// TODO: ci-dessus? sur la stack?
 
-		// Application de la fonction reverse.
-		if(!(reversehash(hash, reversed, shared->hash_length))){
-			fprintf(stderr, "Failed to reverse hash in function 'reverse_thread.c/reverse'.\n");
-			return ((void *) -1);
-		}
-		free(hash);
+
 
 		// printf("REVERSED PASSE\n"); // TODO: viremoi
 
 		// On cree l'espace pour le reversed_hash
-		(shared->reversed_buffer)[first_free_index] = (char *) (malloc((strlen(reversed) + 1)*sizeof(char)));
-		printf("CREATION DU SLOT %d\n", first_free_index);  // TODO: viremoi
-		if(!(shared->reversed_buffer)[first_free_index]){
-			fprintf(stderr,
-					"Failed to allocate memory for '(shared->reversed_buffer)[first_free_index]' "
-						"in function 'reverse_thread.c/reverse'.\n");
-			return((void *) -1);
-		}
+		//(shared->reversed_buffer)[first_free_index] = (char *) (malloc((strlen(reversed) + 1)*sizeof(char)));
+		//printf("CREATION DU SLOT %d\n", first_free_index);  // TODO: viremoi
+		//if(!(shared->reversed_buffer)[first_free_index]){
+			//fprintf(stderr,
+			//		"Failed to allocate memory for '(shared->reversed_buffer)[first_free_index]' "
+			//			"in function 'reverse_thread.c/reverse'.\n");
+			//return((void *) -1);// Application de la fonction reverse.
+		//if(!(reversehash(hash, reversed, shared->hash_length))){
+		//	fprintf(stderr, "Failed to reverse hash in function 'reverse_thread.c/reverse'.\n");
+		//	return ((void *) -1);
+		//}
+		//free(hash);
+		//}
 		// On copie le reversed hash dans la structure partagee
 		// strcpy((shared->reversed_buffer)[first_free_index], reversed);
 		memcpy((shared->reversed_buffer)[first_free_index], reversed, (strlen(reversed) + 1)*sizeof(char));
@@ -191,13 +205,13 @@ void *reverse(void *reverse_params){
 		free(reversed);
 
 		// On libere le buffer (ajout TODO)///////////////////////////////////////////////////////:
-		if ((errcode = pthread_mutex_unlock(shared->hashes_buffer_mtx))) {
-			fprintf(stderr,
-					"Failed to unlock mutex 'shared->reversed_buffer_mtx' in function "
-							"'reverse_thread.c/reverse'.\n");
-			errno = errcode;
-			return ((void *) -1);
-		}
+		//if ((errcode = pthread_mutex_unlock(shared->hashes_buffer_mtx))) {
+		//	fprintf(stderr,
+		//			"Failed to unlock mutex 'shared->reversed_buffer_mtx' in function "
+		//					"'reverse_thread.c/reverse'.\n");
+		//	errno = errcode;
+		//	return ((void *) -1);
+		//}
 
 		// On libere le buffer
 		if ((errcode = pthread_mutex_unlock(shared->reversed_buffer_mtx))) {

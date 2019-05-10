@@ -71,9 +71,10 @@ int get_password(shared_data_t *shared, char *return_string){
 	// Constat: il n'y a rien dans shared-.....[first...] (TODO)
 	// D'apres google, il manque le  \0
 
-	first_full_index--;  // TODO: viremoi
+	//first_full_index--;  // TODO: viremoi
 
-	memcpy(return_string, (shared->reversed_buffer)[first_full_index], shared->hash_length * sizeof(char));
+	memcpy(return_string,((shared->reversed_buffer)[first_full_index]),shared->hash_length * sizeof(char));
+	free((shared->reversed_buffer)[first_full_index]);
 
 	///////////// TODO: a retirer /////////////////
 	printf("(retstr) %d\n", return_string == NULL);
@@ -81,7 +82,6 @@ int get_password(shared_data_t *shared, char *return_string){
 	printf("(strlen) %d\n", strlen((shared->reversed_buffer)[first_full_index]) == 0);
 	printf("APRES MMCP pwd #%d from buffer: %s\n", 69, return_string);
 	///////////////////////////////////////////////
-	free((shared->reversed_buffer)[first_full_index]);
 	printf("SUPPRESSION DU SLOT %d\n", first_full_index);  // TODO: viremoi
 
 	// printf("PWD STRCPY ET FREE DONE\n");  //TODO: backme
@@ -167,17 +167,19 @@ void *sort_passwords(void* sort_params){
 	init_linked_list(candidates);
 	int max_number = 0; 							// nombre max de voyelle ou consonne deja trouve.
 	int quality; 									// nombre de voyelle ou consonne de l'element analyse.
-	char *to_compare = (char *) malloc_retry(10, 10, shared->hash_length * sizeof(char));  // element analyse.
-	if(!to_compare){
-		fprintf(stderr, "Failed to allocate memory for 'to_compare' in function 'sort_thread.c/sort_passwords'.\n");
-		return ((void*) -1);
-	}
+	char *to_compare;
 
 	// Tant que tous les fichiers n'ont pas ete reverse, on trie les mots de passe.
 	while(!(shared->all_files_reversed)){
 		// printf("SORT IN WHILE\n");  //TODO:backme
-		// Recuperation d'un mot de passe
+		printf("Je lance un sort.\n"); //TODO: viremoi
 
+		// Recuperation d'un mot de passe
+		to_compare = (char *) malloc_retry(10, 10, shared->hash_length * sizeof(char));  // element analyse.
+		if(!to_compare){
+			fprintf(stderr, "Failed to allocate memory for 'to_compare' in function 'sort_thread.c/sort_passwords'.\n");
+			return ((void*) -1);
+		}
 		if(get_password(shared, to_compare) == -1){
 			fprintf(stderr,
 					"Failed to retrieve password in function 'sort_thread.c/sort_passwords.\n");
@@ -206,9 +208,8 @@ void *sort_passwords(void* sort_params){
 		}else if(quality == max_number){			// S'il est de meme qualite que les autres...
 			add_node(candidates, to_compare);
 		}
+		free(to_compare);
 	}
-
-	free(to_compare);
 	printf("SORT: FIN DE LA WHILE LOOP\n");  // TODO: backme
 
 	//Une fois le tri termine
